@@ -1,0 +1,314 @@
+
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #FFFFFF;
+   --bg-card: #F8F8F8;
+    --bg-card-hover: #F0F0F0;
+    --border: #E0E0E0;
+   --text: #1C1A17;
+   --text-dim: #4A4A4A;
+    --text-faint: #888888;
+    --accent: #5DCAA5;
+    --accent-dim: #1D9E75;
+    --accent-bg: rgba(93, 202, 165, 0.08);
+    --wrong: #E0654F;
+    --wrong-bg: rgba(224, 101, 79, 0.08);
+    --amber: #E8B85D;
+    --amber-bg: rgba(232, 184, 93, 0.1);
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    min-height: 100vh;
+    background: var(--bg);
+  }
+
+  /* ===== ÉCRAN : EXPIRÉ ===== */
+  #screen-expired {
+    display: none; min-height: 100vh; align-items: center; justify-content: center;
+    flex-direction: column; text-align: center; padding: 24px;
+  }
+  #screen-expired.show { display: flex; }
+  #screen-expired h1 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+  #screen-expired p { color: var(--text-dim); max-width: 420px; }
+
+  /* ===== ÉCRAN : INTRO ===== */
+  #screen-intro { max-width: 700px; margin: 0 auto; padding: 56px 24px 60px; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 13px; color: var(--accent);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .eyebrow::before {
+    content: ''; width: 8px; height: 8px; background: var(--accent);
+    border-radius: 50%; box-shadow: 0 0 0 4px var(--accent-bg);
+  }
+
+  /* Logo CETEMOH ajoute nan paj dantre a -- examen_reseau_v2 */
+  #logo-intro { display: block; max-width: 200px; margin-bottom: 20px; }
+  #screen-intro h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; line-height: 1.15; }
+  #screen-intro .lede { font-size: 16px; color: var(--text-dim); margin-bottom: 32px; max-width: 560px; }
+
+  .meta-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--border); border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 28px; overflow: hidden;
+  }
+  .meta-cell { background: var(--bg-card); padding: 16px 20px; }
+  .meta-cell .label { font-family: var(--mono); font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .meta-cell .value { font-size: 20px; font-weight: 700; color: var(--text); }
+
+  .consignes-title { font-family: var(--mono); font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .subj-note { background: var(--accent-bg); border-left: 3px solid var(--accent); padding: 10px 14px; font-size: 14px; margin-bottom: 16px; color: var(--text); font-weight: 600; }
+  .rules { border-left: 2px solid var(--accent); padding-left: 18px; margin-bottom: 32px; }
+  .rules li { color: var(--text-dim); font-size: 14px; margin-bottom: 8px; list-style: none; }
+  .rules li::before { content: '— '; color: var(--accent); }
+
+  .field-group { margin-bottom: 18px; }
+  .field-group label { display: block; font-family: var(--mono); font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .field-group input {
+    width: 100%; font-family: var(--sans); font-size: 16px; padding: 12px 14px;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text);
+  }
+  .field-group input:focus { outline: none; border-color: var(--accent); }
+  .code-field .code-wrap { position: relative; display: flex; align-items: center; }
+  .code-field .code-wrap input { padding-right: 44px; }
+  .code-field .eye-btn {
+    position: absolute; right: 12px; cursor: pointer; font-size: 20px; line-height: 1;
+    user-select: none; opacity: 0.55; transition: opacity 0.15s;
+  }
+  .code-field .eye-btn:hover { opacity: 1; }
+
+  .start-btn {
+    font-family: var(--sans); font-weight: 600; font-size: 15px;
+    background: var(--accent); color: #06231A; border: none;
+    padding: 14px 32px; border-radius: 8px; cursor: pointer; width: 100%;
+    transition: opacity 0.15s;
+  }
+  .start-btn:hover { opacity: 0.9; }
+
+  /* ===== ÉCRAN : EXAMEN ===== */
+  #screen-exam { display: none; }
+  #screen-exam.show { display: block; }
+
+  #exam-header {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  #exam-header .title { font-weight: 700; font-size: 16px; }
+  #timer {
+    font-family: var(--mono); font-size: 18px; font-weight: 600;
+    padding: 6px 16px; border-radius: 20px; background: var(--accent-bg); color: var(--accent);
+    transition: background 0.3s, color 0.3s;
+  }
+  #timer.warn { background: var(--amber-bg); color: var(--amber); }
+  #timer.danger { background: var(--wrong-bg); color: var(--wrong); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+  /* Seksyon kesyon yo -- examen_reseau_v2 */
+  #exam-body { max-width: 760px; margin: 0 auto; padding: 32px 24px 100px; }
+
+  /* Bar pwogresyon ak pwen seksyon -- examen_reseau_v2 */
+  #progress-wrap {
+    display: flex; align-items: center; gap: 12px;
+    max-width: 760px; margin: 0 auto; padding: 14px 24px 6px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 62px; z-index: 49; background: var(--bg);
+    overflow: visible;
+  }
+  #progress-col { flex: 1; overflow: visible; }
+  #progress-bar-outer { position: relative; overflow: visible; }
+  #progress-bar { height: 10px; background: var(--bg-card); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); position: relative; }
+  #progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.4s ease; position: relative; z-index: 1; }
+  #progress-dots {
+    display: flex; justify-content: space-between;
+    position: absolute; top: 0; left: 0; right: 0; height: 10px; pointer-events: none; z-index: 2;
+  }
+  .pdot {
+    width: 14px; height: 14px; background: var(--bg);
+    border: 2.5px solid var(--border); border-radius: 50%;
+    transform: translateY(-2px);
+  }
+  #progress-labels {
+    display: flex; justify-content: space-between; margin-top: 4px; padding: 0 0;
+  }
+  .plabel { font-family: var(--mono); font-size: 9px; color: var(--text-faint); white-space: nowrap; letter-spacing: 0.02em; }
+  #progress-text { display: none; }
+
+  /* Etikèt seksyon anlè kesyon an -- examen_reseau_v2 */
+  #q-section-label {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 0; padding: 10px 0 8px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 111px; z-index: 48; background: var(--bg);
+  }
+
+  /* Etad read-only (view-only) kote etidyan pa ka chanje repons -- examen_reseau_v2 */
+  #q-container.view-only .opt-item { opacity: 0.7; cursor: default; }
+  #q-container.view-only .opt-item:hover { border-color: var(--border); }
+  #q-container.view-only .opt-item input { pointer-events: none; }
+  #q-container.view-only select.dd { opacity: 0.7; pointer-events: none; }
+  #q-container.view-only textarea.subj { opacity: 0.7; pointer-events: none; }
+  #q-container.view-only .dnd-chip { opacity: 0.5; cursor: default; }
+  #q-container.view-only .dnd-slot { opacity: 0.7; pointer-events: none; }
+
+  /* Yon sèl kesyon alafwa -- examen_reseau_v2 */
+  #q-container { min-height: 200px; }
+  #q-container .q-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 28px 28px; margin-top: 20px; scroll-margin-top: 150px;
+  }
+  #q-container .q-num { font-family: var(--mono); font-size: 12px; color: var(--text-faint); margin-bottom: 6px; }
+  #q-container .q-text { font-size: 16px; font-weight: 500; margin-bottom: 20px; line-height: 1.5; color: var(--text); }
+  #q-container .q-points { font-family: var(--mono); font-size: 11px; color: var(--accent); background: var(--accent-bg); padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
+
+  .opt-list { display: flex; flex-direction: column; gap: 8px; }
+  .opt-item {
+    display: flex; align-items: center; gap: 10px;
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  }
+  .opt-item:hover { border-color: var(--text-faint); }
+  .opt-item input { accent-color: var(--accent); width: 16px; height: 16px; }
+  .opt-item.checked { border-color: var(--accent); background: var(--accent-bg); }
+  .opt-item label { font-size: 14.5px; cursor: pointer; flex: 1; color: var(--text); }
+
+  select.dd {
+    width: 100%; font-family: var(--sans); font-size: 14.5px; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text);
+  }
+
+  textarea.subj {
+    width: 100%; font-family: var(--sans); font-size: 14.5px; padding: 12px 14px;
+    border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text);
+    min-height: 150px; resize: vertical; line-height: 1.5;
+  }
+  textarea.subj:focus, select.dd:focus { outline: none; border-color: var(--accent); }
+
+  /* Glise-depoze pou yon sèl kesyon -- examen_reseau_v2 */
+  .dnd-layout { display: flex; gap: 16px; align-items: stretch; margin: 16px 0; }
+  .dnd-equip {
+    flex: 0 0 130px; font-family: var(--mono); font-size: 18px; font-weight: 700;
+    padding: 20px 12px; background: var(--accent-bg); border-radius: 8px;
+    text-align: center; display: flex; align-items: center; justify-content: center;
+    min-height: 90px; border: 1px solid var(--accent); color: var(--text);
+  }
+  #q-container .dnd-pool {
+    flex: 1; display: flex; gap: 8px; flex-wrap: wrap;
+    padding: 14px; background: var(--accent-bg); border-radius: 8px; border: 1px dashed var(--accent);
+  }
+  #q-container .dnd-chip {
+    font-family: var(--mono); font-size: 12px; background: var(--bg-card); border: 1px solid var(--border);
+    padding: 8px 14px; border-radius: 16px; cursor: grab; user-select: none; color: var(--text);
+    max-width: 100%;
+  }
+  #q-container .dnd-chip.placed { opacity: 0.3; cursor: default; }
+  #q-container .dnd-slot {
+    min-height: 52px; border: 1.5px dashed var(--border); border-radius: 8px;
+    padding: 10px 16px; display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 14px;
+    color: var(--text-faint); transition: border-color 0.15s, background 0.15s;
+    margin-top: 4px; text-align: center;
+  }
+  #q-container .dnd-slot.over { border-color: var(--accent); background: var(--accent-bg); }
+  #q-container .dnd-slot.filled { border-style: solid; border-color: var(--accent-dim); color: var(--text); background: var(--accent-bg); }
+
+  /* Navigasyon -- examen_reseau_v2 */
+  #nav-zone { text-align: center; margin-top: 28px; display: flex; justify-content: space-between; gap: 12px; }
+  #prev-btn {
+    font-family: var(--sans); font-weight: 500; font-size: 14px;
+    background: var(--bg-card); color: var(--text-dim); border: 1px solid var(--border);
+    padding: 14px 28px; border-radius: 8px; cursor: pointer; transition: opacity 0.15s;
+  }
+  #prev-btn:hover:not(:disabled) { background: var(--bg-card-hover); }
+  #prev-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  #next-btn {
+    font-family: var(--sans); font-weight: 600; font-size: 15px;
+    background: var(--accent); color: #06231A; border: none;
+    padding: 14px 36px; border-radius: 8px; cursor: pointer; transition: opacity 0.15s;
+  }
+  #next-btn:hover:not(:disabled) { opacity: 0.9; }
+  #next-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Ekran résumé -- examen_reseau_v2 */
+  #screen-summary { display: none; }
+  #screen-summary h2 { font-size: 22px; font-weight: 700; margin-bottom: 24px; }
+  .summary-q {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 18px; margin-bottom: 10px; font-size: 14px; line-height: 1.5;
+  }
+  .summary-q .sq-label { font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-bottom: 4px; }
+  .summary-q .sq-answer { color: var(--text); }
+  .summary-q .sq-empty { color: var(--text-faint); font-style: italic; }
+  #summary-actions { text-align: center; margin-top: 32px; }
+  #summary-actions #submit-btn {
+    font-family: var(--sans); font-weight: 600; font-size: 15px;
+    background: var(--accent); color: #06231A; border: none;
+    padding: 16px 48px; border-radius: 8px; cursor: pointer;
+  }
+  #summary-actions #submit-btn:hover { opacity: 0.9; }
+
+  /* ===== ÉCRAN : FIN ===== */
+  #screen-done { display: none; max-width: 560px; margin: 0 auto; padding: 90px 24px; text-align: center; }
+  #screen-done.show { display: block; }
+  #screen-done h1 { font-size: 26px; font-weight: 700; margin-bottom: 12px; color: var(--accent); }
+  #screen-done p { color: var(--text-dim); margin-bottom: 24px; font-size: 14.5px; line-height: 1.6; }
+  #screen-done .resend-btn, #screen-done .copy-btn {
+    font-family: var(--sans); font-weight: 600; font-size: 14px;
+    border: 1px solid var(--border); color: var(--text); background: var(--bg-card);
+    padding: 10px 22px; border-radius: 8px; cursor: pointer; margin: 6px;
+  }
+  #screen-done .copy-btn { border-color: var(--accent); color: var(--accent); }
+  #copy-feedback { font-size: 13px; color: var(--accent); margin-top: 10px; display: none; }
+  #copy-feedback.show { display: block; }
+  #fallback-textarea {
+    width: 100%; min-height: 220px; margin-top: 20px; font-family: var(--mono); font-size: 11.5px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+    padding: 14px; resize: vertical; display: none;
+  }
+  #fallback-textarea.show { display: block; }
+
+  /* ===== MODAL POP-UP ===== */
+  /* Modal pou mesaj si etidyan pa reponn okenn kesyon -- examen_reseau_v2 */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 999;
+    background: rgba(0,0,0,0.4); align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--bg); border-radius: 14px; padding: 32px 36px;
+    max-width: 380px; width: 90%; text-align: center;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  }
+  .modal-icon {
+    width: 48px; height: 48px; border-radius: 50%; background: var(--wrong-bg);
+    color: var(--wrong); font-size: 26px; font-weight: 700; line-height: 48px;
+    margin: 0 auto 16px; text-align: center;
+  }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .modal-msg { font-size: 14.5px; color: var(--text-dim); margin-bottom: 22px; line-height: 1.5; }
+  .modal-btn {
+    font-family: var(--sans); font-weight: 600; font-size: 14px;
+    background: var(--accent); color: #06231A; border: none;
+    padding: 10px 28px; border-radius: 8px; cursor: pointer;
+  }
+  .modal-btn:hover { opacity: 0.9; }
+
+  @media (max-width: 600px) {
+    #screen-intro h1 { font-size: 28px; }
+    .meta-grid { grid-template-columns: 1fr; }
+    .dnd-layout { flex-direction: column; align-items: stretch; }
+    .dnd-equip { flex: auto; min-height: 50px; padding: 12px; }
+  }
