@@ -6,27 +6,14 @@ const TEACHER_EMAIL = "stevengauchier@gmail.com";
 const EMAILJS_SERVICE_ID = "service_jjqlfck";
 const EMAILJS_TEMPLATE_ID = "template_a9uazrs";
 const EMAILJS_PUBLIC_KEY = "8ZF_oJb8pHOzojn1p";
-const EXAM_DURATION_SECONDS = 150 * 60; // 150 minutes
-const DEADLINE = new Date("2026-07-10T23:59:59"); // Egzamen fini
+const API_BASE = "api/";          // endpoint PHP lokal
+const EXAM_DURATION_SECONDS = 150 * 60; // sekou si server pa reponn
 
-/* Lis kòd aksè ak non etidyan yo — modifye selon lis klas ou */
-const STUDENTS = [
-  { code: "2025RES01", name: "GAUCHIER Steven" },
-  { code: "2025RES02", name: "Deshley REJOUIS" },
-  { code: "2025RES03", name: "FLERIVAL Wiselet" },
-  { code: "2025RES04", name: "Ezechiel EXUME" },
-  { code: "2025RES05", name: "CLERVILLE Stephania" },
-  { code: "2025RES06", name: "Belando DESIR" },
-  { code: "2025RES07", name: "OVIDE Samuel" },
-  { code: "2025RES08", name: "Frederic Schnyder" },
-  { code: "2025RES09", name: "Verna Josephine Angella" },
-  { code: "2025RES10", name: "Einstein Medjuvens LAFONTANT" },
-  { code: "2025RES11", name: "Miralus Kervens" },
-  { code: "2025RES12", name: "Lovinsky FEDNA" },
-  { code: "2025RES13", name: "ETIDYAN 13" },
-  { code: "2025RES14", name: "ETIDYAN 14" },
-  { code: "2025RES15", name: "ETIDYAN 15" },
-];
+/* Sesyon aktyèl la (gade ak PHP validation) */
+let sessionKey = null;
+let remainingSeconds = EXAM_DURATION_SECONDS;
+let saveTimer = null;
+let isSaving = false;
 
 /* ============================================================
    HACHAGE SHA-256 (les bonnes réponses ne sont jamais en clair)
@@ -200,21 +187,87 @@ const SUBJ = [
 const SUBJ_NOTE = "2 des 3 questions subjectives sont obligatoires";
 
 let timerInterval = null;
+let syncTimerInterval = null;
 let examSubmitted = false;
 let studentName = "";
 
 /* ============================================================
-   VÉRIFICATION DE LA DATE LIMITE
+   APPEL API PHP (local)
    ============================================================ */
-function checkDeadline() {
-  const params = new URLSearchParams(window.location.search);
-  if (params.has('admin')) return false; // bypass pou pwofesè a
-  if (new Date() > DEADLINE) {
-    document.getElementById('screen-expired').classList.add('show');
-    document.getElementById('screen-intro').style.display = 'none';
-    return true;
+async function apiPost(endpoint, payload) {
+  const res = await fetch(API_BASE + endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+
+/* ============================================================
+   INDICATEUR AUTO-SAVE
+   ============================================================ */
+function setSaveStatus(state, msg) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.className = 'save-status ' + state;
+  el.textContent = msg || {
+    saving: 'Enregistrement...',
+    saved: 'Enregistré',
+    error: 'Échec de l\'enregistrement'
+  }[state];
+}
+
+function scheduleSave() {
+  if (!sessionKey || examSubmitted) return;
+  if (saveTimer) clearTimeout(saveTimer);
+  setSaveStatus('saving');
+  saveTimer = setTimeout(saveAnswers, 1200);
+}
+
+function showExpired() {
+  document.getElementById('screen-exam').classList.remove('show');
+  document.getElementById('screen-intro').style.display = 'none';
+  document.getElementById('screen-expired').classList.add('show');
+}
+
+async function saveAnswers() {
+  if (!sessionKey || examSubmitted || isSaving) return;
+  isSaving = true;
+  try {
+    const res = await apiPost('save_answers.php', {
+      session_key: sessionKey,
+      answers: userAnswers
+    });
+    if (res.ok) {
+      setSaveStatus('saved');
+      if (res.remaining_seconds) remainingSeconds = res.remaining_seconds;
+      if (res.submitted) { location.reload(); return; }
+    } else if (res.expired) {
+      showExpired();
+      return;
+    } else {
+      setSaveStatus('error');
+      if (res.submitted) { location.reload(); return; }
+    }
+  } catch (e) {
+    setSaveStatus('error');
+  } finally {
+    isSaving = false;
   }
-  return false;
+}
+
+async function loadSavedAnswers() {
+  try {
+    const res = await apiPost('get_answers.php', { session_key: sessionKey });
+    if (res.ok && res.answers) {
+      Object.keys(res.answers).forEach(k => {
+        const a = res.answers[k];
+        userAnswers[parseInt(k, 10)] = typeof a === 'string' ? a : (Array.isArray(a) ? a : String(a ?? ''));
+      });
+    }
+    if (res.remaining_seconds) remainingSeconds = res.remaining_seconds;
+    if (res.submitted) { location.reload(); return; }
+  } catch (e) { /* silansye */ }
 }
 
 /* ============================================================
@@ -435,6 +488,7 @@ function selOpt(idx, oi) {
   document.querySelectorAll(`#q-container [id^="q-${idx}-"]`).forEach(el => el.classList.remove('checked'));
   const el = document.getElementById(`q-${idx}-${oi}`);
   if (el) { el.classList.add('checked'); el.querySelector('input').checked = true; }
+  scheduleSave();
 }
 function selMulti(idx, oi) {
   const q = QUESTIONS[idx];
@@ -446,9 +500,10 @@ function selMulti(idx, oi) {
   const cb = document.getElementById(`cb-${idx}-${oi}`);
   if (el) el.classList.toggle('checked');
   if (cb) cb.checked = !cb.checked;
+  scheduleSave();
 }
-function ansDD(idx, val) { userAnswers[idx] = val || ''; }
-function ansSubj(idx, val) { userAnswers[idx] = val; }
+function ansDD(idx, val) { userAnswers[idx] = val || ''; scheduleSave(); }
+function ansSubj(idx, val) { userAnswers[idx] = val; scheduleSave(); }
 
 /* === GLISSE-DEPOZE (DND) handlers === */
 let draggedSingle = null;
@@ -474,9 +529,10 @@ function dropSingle(ev, idx) {
   const chipEl = document.getElementById(`dnd-chip-${idx}-${draggedSingle.ci}`);
   if (chipEl) { chipEl.classList.add('placed'); chipEl.draggable = false; }
   draggedSingle = null;
+  scheduleSave();
 }
 
-/* F�men modal pop-up la -- examen_reseau_v2 */
+/* Fermer modal pop-up la -- examen_reseau_v2 */
 function toggleCodeVis() {
   const inp = document.getElementById('access-code');
   const eye = document.getElementById('eye-btn');
@@ -494,7 +550,7 @@ function closeModal() {
   document.getElementById('modal-overlay').classList.remove('show');
   document.querySelector('.modal-icon').textContent = '!';
   document.querySelector('.modal-title').textContent = 'Attention';
-  document.querySelector('.modal-msg').innerHTML = 'Vous devez r�pondre � au moins une question avant de soumettre.';
+  document.querySelector('.modal-msg').innerHTML = 'Vous devez r\u00e9pondre \u00e0 au moins une question avant de soumettre.';
   const ni = document.getElementById('access-code');
   if (ni) { ni.focus(); ni.select(); }
 }
@@ -519,54 +575,89 @@ function showSummary() {
 }
 
 /* ============================================================
-   DÉMARRAGE DE L'EXAMEN
+   DÉMARRAGE DE L'EXAMEN (validation côté serveur)
    ============================================================ */
-function startExam() {
+function showModal(title, msg) {
+  document.querySelector('.modal-icon').textContent = '!';
+  document.querySelector('.modal-title').textContent = title;
+  document.querySelector('.modal-msg').textContent = msg;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function setLoginStatus(state, msg) {
+  const el = document.getElementById('login-status');
+  if (!el) return;
+  el.className = 'login-status ' + state;
+  el.textContent = msg;
+}
+
+async function startExam() {
   const codeInput = document.getElementById('access-code');
+  const nameInput = document.getElementById('student-name');
   const enteredCode = codeInput.value.trim().toUpperCase();
+  const enteredName = nameInput.value.trim();
 
-  /* Tcheke kòd aksè a */
-  const student = STUDENTS.find(s => s.code.toUpperCase() === enteredCode);
-  if (!student) {
-    document.querySelector('.modal-icon').textContent = '!';
-    document.querySelector('.modal-title').textContent = 'Code invalide';
-    document.querySelector('.modal-msg').textContent = 'Le code d\'accès que vous avez entré n\'est pas reconnu. Veuillez vérifier auprès de votre enseignant.';
-    document.getElementById('modal-overlay').classList.add('show');
-    return;
-  }
-  if (student.name.startsWith('ETIDYAN')) {
-    document.querySelector('.modal-icon').textContent = '!';
-    document.querySelector('.modal-title').textContent = 'Code non attribué';
-    document.querySelector('.modal-msg').textContent = 'Ce code n\'est pas encore attribué à un étudiant. Veuillez contacter votre enseignant.';
-    document.getElementById('modal-overlay').classList.add('show');
+  if (!enteredCode || !enteredName) {
+    showModal('Champs requis', 'Veuillez entrer votre code d\'accès et votre nom complet.');
     return;
   }
 
-  studentName = student.name;
+  const btn = document.getElementById('start-btn');
+  btn.disabled = true;
+  btn.textContent = 'Vérification...';
+  setLoginStatus('wait', 'Vérification du code...');
 
-  document.getElementById('screen-intro').style.display = 'none';
-  document.getElementById('screen-exam').classList.add('show');
+  try {
+    const res = await apiPost('validate_code.php', {
+      code: enteredCode,
+      name: enteredName
+    });
 
-  currentSectionIdx = 0;
-  userAnswers = {};
-  document.getElementById('q-section-label').style.display = 'block';
-  document.getElementById('q-container').style.display = 'block';
-  document.getElementById('q-container').className = '';
-  document.getElementById('nav-zone').style.display = 'block';
-  document.getElementById('screen-summary').style.display = 'none';
-  renderSection(0);
-  startTimer();
-  setTimeout(() => {
-    const card = document.querySelector('#q-container .q-card');
-    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 100);
+    if (!res.ok) {
+      btn.disabled = false;
+      btn.textContent = 'Commencer l\'examen';
+      setLoginStatus('err', '');
+      showModal(res.title || 'Accès refusé', res.message || 'Impossible de vous connecter.');
+      return;
+    }
+
+    sessionKey = res.session_key;
+    studentName = res.name || enteredName;
+    remainingSeconds = res.remaining_seconds;
+
+    document.getElementById('student-label').textContent = studentName;
+
+    document.getElementById('screen-intro').style.display = 'none';
+    document.getElementById('screen-exam').classList.add('show');
+
+    currentSectionIdx = 0;
+    userAnswers = {};
+    document.getElementById('q-section-label').style.display = 'block';
+    document.getElementById('q-container').style.display = 'block';
+    document.getElementById('q-container').className = '';
+    document.getElementById('nav-zone').style.display = 'block';
+    document.getElementById('screen-summary').style.display = 'none';
+
+    renderSection(0);
+    await loadSavedAnswers();
+    renderSection(currentSectionIdx); // re-render avèk repons rezime yo
+    startTimer();
+    setSaveStatus('saved', 'Enregistré');
+    setTimeout(() => {
+      const card = document.querySelector('#q-container .q-card');
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  } catch (e) {
+    console.error(e);
+    btn.disabled = false;
+    btn.textContent = 'Commencer l\'examen';
+    setLoginStatus('err', 'Serveur injoignable — contactez l\'enseignant.');
+  }
 }
 
 /* ============================================================
    CHRONOMÈTRE
    ============================================================ */
-let remainingSeconds = EXAM_DURATION_SECONDS;
-
 function startTimer() {
   updateTimerDisplay();
   timerInterval = setInterval(() => {
@@ -574,6 +665,7 @@ function startTimer() {
     updateTimerDisplay();
     if (remainingSeconds <= 0) { clearInterval(timerInterval); submitExam(true); }
   }, 1000);
+  syncTimerInterval = setInterval(() => { scheduleSave(); }, 30000);
 }
 
 function updateTimerDisplay() {
@@ -600,28 +692,28 @@ async function gradeObjective() {
     const userHash = userAns ? await sha256(userAns) : null;
     const correct = userHash === QCM[i].hash;
     if (correct) score += 2; // QCM 2 pts chak
-    detail.push(`A.${i+1}: ${userAns || '(sans r�ponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
+    detail.push(`A.${i+1}: ${userAns || '(sans réponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
   }
   for (let i = 0; i < VF.length; i++, qi++) {
     const userAns = userAnswers[qi] || null;
     const userHash = userAns ? await sha256(userAns) : null;
     const correct = userHash === VF[i].hash;
     if (correct) score += 2;
-    detail.push(`B.${i+1}: ${userAns || '(sans r�ponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
+    detail.push(`B.${i+1}: ${userAns || '(sans réponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
   }
   for (let i = 0; i < DD.length; i++, qi++) {
     const userAns = userAnswers[qi] || null;
     const userHash = userAns ? await sha256(userAns) : null;
     const correct = userHash === DD[i].hash;
     if (correct) score += 2; // Liste 2 pts chak
-    detail.push(`C.${i+1}: ${userAns || '(sans r�ponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
+    detail.push(`C.${i+1}: ${userAns || '(sans réponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
   }
   for (let i = 0; i < DND.length; i++, qi++) {
     const userAns = userAnswers[qi] || null;
     const userHash = userAns ? await sha256(userAns) : null;
     const correct = userHash === DND[i].hash;
     if (correct) score += 2; // Glisser 2 pts chak
-    detail.push(`D (${DND[i].target}): ${userAns || '(sans r�ponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
+    detail.push(`D (${DND[i].target}): ${userAns || '(sans réponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
   }
   for (let qi2 = 0; qi2 < MULTI.length; qi2++, qi++) {
     const userSelected = Array.isArray(userAnswers[qi]) ? userAnswers[qi] : [];
@@ -629,7 +721,7 @@ async function gradeObjective() {
     const userSet = new Set(userSelected);
     const isExactMatch = correctSet.size === userSet.size && [...correctSet].every(a => userSet.has(a));
     if (isExactMatch) score += 4; // Multi 4 pts chak
-    detail.push(`E.${qi2+1}: ${userSelected.join(', ') || '(sans r�ponse)'} ${isExactMatch ? '[correct]' : '[incorrect]'}`);
+    detail.push(`E.${qi2+1}: ${userSelected.join(', ') || '(sans réponse)'} ${isExactMatch ? '[correct]' : '[incorrect]'}`);
   }
 
   return { score, detail };
@@ -640,7 +732,7 @@ function collectSubjective() {
   let qi = QCM.length + VF.length + DD.length + DND.length + MULTI.length;
   SUBJ.forEach((item, i) => {
     const val = userAnswers[qi + i] || '';
-    answers.push(`F.${i+1} (${item.pts} pts) ${item.q}\n${val || '(sans r�ponse)'}`);
+    answers.push(`F.${i+1} (${item.pts} pts) ${item.q}\n${val || '(sans réponse)'}`);
   });
   return answers;
 }
@@ -663,15 +755,20 @@ function hasAnyAnswer() {
 async function submitExam(autoSubmit) {
   if (examSubmitted) return;
   if (!autoSubmit && !hasAnyAnswer()) {
-    /* Montre modal pop-up olye alert() -- examen_reseau_v2 */
-    document.querySelector('.modal-icon').textContent = '!';
-    document.querySelector('.modal-title').textContent = 'Attention';
-    document.querySelector('.modal-msg').innerHTML = 'Vous devez r�pondre � au moins une question avant de soumettre.';
-    document.getElementById('modal-overlay').classList.add('show');
+    showModal('Attention', 'Vous devez répondre à au moins une question avant de soumettre.');
     return;
   }
   examSubmitted = true;
   if (timerInterval) clearInterval(timerInterval);
+  if (syncTimerInterval) clearInterval(syncTimerInterval);
+
+  /* Voye repons yo + make submitted sou server anvan tout bagay */
+  try {
+    if (sessionKey) {
+      await apiPost('save_answers.php', { session_key: sessionKey, answers: userAnswers });
+      await apiPost('submit_exam.php', { session_key: sessionKey });
+    }
+  } catch (e) { /* rete pare */ }
 
   const { score: objectiveScore, detail } = await gradeObjective();
   const subjectiveAnswers = collectSubjective();
@@ -685,15 +782,15 @@ async function submitExam(autoSubmit) {
   }
 
   buildEmailContent(objectiveScore, detail, subjectiveAnswers);
-setupSubmitButtons(objectiveScore, detail, subjectiveAnswers);
+  setupSubmitButtons(objectiveScore, detail, subjectiveAnswers);
 }
 
 function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
-  lastEmailSubject = `Résultats Réseau 1 — ${studentName}`;
+  lastEmailSubject = `Résultats Réseau 2 — ${studentName}`;
 
   let body = '';
   body += `╔══════════════════════════════════════════════════════════╗\n`;
-  body += `║            RÉSEAU 1 — RÉSULTATS D'EXAMEN              ║\n`;
+  body += `║            RÉSEAU 2 — RÉSULTATS D'EXAMEN              ║\n`;
   body += `╚══════════════════════════════════════════════════════════╝\n\n`;
   body += `Étudiant : ${studentName}\n`;
   body += `${'─'.repeat(60)}\n\n`;
@@ -723,7 +820,7 @@ function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
   body += ` TOTAL                   : ____ / 100\n`;
   body += ` Seuil de réussite        : 65 / 100\n\n`;
   body += `${'─'.repeat(60)}\n`;
-  body += ` Document généré automatiquement — Examen Réseau 1\n`;
+  body += ` Document généré automatiquement — Examen Réseau 2\n`;
 
   lastEmailBody = body;
 }
@@ -782,8 +879,20 @@ async function sendEmail(objectiveScore, detail, subjectiveAnswers) {
 /* ============================================================
    INITIALISATION GÉNÉRALE
    ============================================================ */
+function updateStartBtn() {
+  const btn = document.getElementById('start-btn');
+  if (!btn) return;
+  const code = (document.getElementById('access-code').value || '').trim();
+  const name = (document.getElementById('student-name').value || '').trim();
+  btn.disabled = !(code && name);
+}
+
 (async function init() {
   emailjs.init(EMAILJS_PUBLIC_KEY);
-  if (checkDeadline()) return;
+  const codeInput = document.getElementById('access-code');
+  const nameInput = document.getElementById('student-name');
+  if (codeInput) codeInput.addEventListener('input', updateStartBtn);
+  if (nameInput) nameInput.addEventListener('input', updateStartBtn);
+  updateStartBtn();
   await initHashes();
 })();

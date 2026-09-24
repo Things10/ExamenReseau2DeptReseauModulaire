@@ -3,28 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Examen — Réseau 1</title>
+<title>Examen — Réseau 2</title>
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
- 
+
 <!-- ===================== ÉCRAN EXPIRÉ ===================== -->
 <div id="screen-expired">
   <h1>Cet examen n'est plus disponible</h1>
-  <p>La période d'évaluation pour Réseau 1 est terminée. Contactez votre enseignant si vous pensez qu'il s'agit d'une erreur.</p>
+  <p>La période d'évaluation pour Réseau 2 est terminée. Contactez votre enseignant si vous pensez qu'il s'agit d'une erreur.</p>
 </div>
 
 <!-- ===================== ÉCRAN INTRO ===================== -->
-<!-- Ajoute logo CETEMOH anwo a goch -- examen_reseau_v2 -->
 <div id="screen-intro">
   <img src="img/logo.png" alt="Logo CETEMOH" id="logo-intro">
-  <div class="eyebrow">Réseau 1 — évaluation finale</div>
-  <h1>Examen Réseau 1</h1>
-  <p class="lede">Cet examen couvre l'ensemble du module : introduction aux réseaux, modèles OSI/TCP-IP, couches physique à application, équipements réseau, et domotique.</p>
+  <div class="eyebrow">Réseau 2 — évaluation finale</div>
+  <h1>Examen Réseau 2</h1>
+  <p class="lede">Cet examen est surveillé par une base de données : vos réponses sont enregistrées automatiquement à chaque question. Même si la page se ferme par erreur, vous pourrez reprendre l'examen là où vous vous étiez arrêté.</p>
 
   <div class="meta-grid">
-     <div class="meta-cell"><div class="label">Durée</div><div class="value">150 minutes</div></div>
+    <div class="meta-cell"><div class="label">Durée</div><div class="value">150 minutes</div></div>
     <div class="meta-cell"><div class="label">Total</div><div class="value">100 points</div></div>
     <div class="meta-cell"><div class="label">Seuil de réussite</div><div class="value">65 / 100</div></div>
     <div class="meta-cell"><div class="label">Questions</div><div class="value">36</div></div>
@@ -33,32 +32,40 @@
   <h3 class="consignes-title">Consignes</h3>
   <ul class="rules">
     <li>Le chronomètre démarre dès que vous cliquez sur « Commencer l'examen » et ne peut pas être mis en pause.</li>
+    <li>Vos réponses sont enregistrées automatiquement dans la base de données. Si la page se ferme, reconnectez-vous avec votre code et votre nom pour reprendre.</li>
     <li>À la fin du temps imparti, vos réponses sont soumises automatiquement, même incomplètes.</li>
     <li>Les questions à choix multiple, liste déroulante et glisser-déposer sont corrigées automatiquement.</li>
     <li>Les questions de définition et de réflexion seront corrigées manuellement par l'enseignant.</li>
-    <li>Ne fermez pas cette page pendant l'examen — vos réponses ne sont pas sauvegardées si vous quittez.</li>
-    <li>Utilisez le code que l'enseignant vous a attribué pour accéder à l'examen. Cliquez sur l'ic&ocirc;ne &#128065; pour v&eacute;rifier le code saisi.</li>
+    <li>Utilisez le code et le nom que l'enseignant vous a attribués. Le code est personnel et lié à votre nom : vous ne pouvez pas utiliser celui d'un autre étudiant.</li>
   </ul>
 
+  <div class="field-group">
+    <label for="student-name">Votre nom complet (tel qu'enregistré)</label>
+    <input type="text" id="student-name" placeholder="Exemple : GAUCHIER Steven" autocomplete="off">
+  </div>
+
   <div class="field-group code-field">
-    <label for="access-code">Entrez votre code</label>
+    <label for="access-code">Votre code</label>
     <div class="code-wrap">
       <input type="password" id="access-code" placeholder="Entrez votre code" autocomplete="off">
       <span class="eye-btn" id="eye-btn" onclick="toggleCodeVis()">&#128065;</span>
     </div>
   </div>
 
-  <button class="start-btn" id="start-btn" onclick="startExam()">Commencer l'examen</button>
+  <button class="start-btn" id="start-btn" onclick="startExam()" disabled>Commencer l'examen</button>
+  <div id="login-status" class="login-status"></div>
 </div>
 
 <!-- ===================== ÉCRAN EXAMEN ===================== -->
 <div id="screen-exam">
   <div id="exam-header">
-    <div class="title">Examen Réseau 1</div>
-    <div id="timer">02:30:00</div>
+    <div class="title">Examen Réseau 2 <span id="student-label"></span></div>
+    <div class="header-right">
+      <span id="save-status" class="save-status">—</span>
+      <span id="timer">02:30:00</span>
+    </div>
   </div>
 
-  <!-- Bar pwogresyon ak pwen seksyon -- examen_reseau_v2 -->
   <div id="progress-wrap">
     <div id="progress-col">
       <div id="progress-bar-outer">
@@ -83,22 +90,17 @@
         <span class="plabel">F. R&eacute;flexion</span>
       </div>
     </div>
-
   </div>
 
   <div id="exam-body">
-
-    <!-- Zòn kesyon an (1 pa 1) -- examen_reseau_v2 -->
     <div id="q-section-label"></div>
     <div id="q-container"></div>
 
-    <!-- Navigasyon -- examen_reseau_v2 -->
     <div id="nav-zone">
-      <button id="prev-btn" onclick="goPrev()" disabled>Question pr&eacute;c&eacute;dente</button>
-      <button id="next-btn" onclick="goNext()" disabled>Question suivante</button>
+      <button id="prev-btn" onclick="goPrev()" disabled>Section pr&eacute;c&eacute;dente</button>
+      <button id="next-btn" onclick="goNext()" disabled>Section suivante</button>
     </div>
 
-    <!-- Ekran résumé anvan soumèt -- examen_reseau_v2 -->
     <div id="screen-summary" style="display:none">
       <h2>Résumé de vos réponses</h2>
       <div id="summary-content"></div>
@@ -106,32 +108,28 @@
         <button id="submit-btn" onclick="submitExam(false)">Soumettre l'examen</button>
       </div>
     </div>
-
   </div>
 </div>
 
 <!-- ===================== ÉCRAN FIN ===================== -->
 <div id="screen-done">
   <h1>Examen soumis</h1>
-  <p id="done-msg">Vos réponses ont été enregistrées. Cliquez sur un des boutons ci-dessous pour transmettre vos résultats à l'enseignant.</p>
+  <p id="done-msg">Vos réponses ont été enregistrées dans la base de données et transmises à l'enseignant.</p>
   <button class="resend-btn" id="resend-btn">Ouvrir l'e-mail de résultats</button>
   <button class="copy-btn" id="copy-btn">Copier les résultats</button>
-  <div id="copy-feedback">Résultats copiés — vous pouvez les coller dans un e-mail ou un message.</div>
-  <textarea id="fallback-textarea" readonly></textarea>
+  <div id="copy-feedback"></div>
 </div>
 
-
 <!-- ===================== MODAL POP-UP ===================== -->
-<!-- Modal pou mesaj si etidyan pa reponn okenn kesyon -- examen_reseau_v2 -->
 <div id="modal-overlay" class="modal-overlay" onclick="closeModal()">
   <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-icon">!</div>
     <div class="modal-title">Attention</div>
-    <div class="modal-msg">Vous devez répondre à au moins une question avant de soumettre.</div>
+    <div class="modal-msg">Message.</div>
     <button class="modal-btn" onclick="closeModal()">Compris</button>
   </div>
 </div>
 
-<script src="js/exam.js?v=20260709"></script>
+<script src="js/exam.js?v=20260711"></script>
 </body>
 </html>
