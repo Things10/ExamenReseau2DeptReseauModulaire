@@ -651,12 +651,14 @@ async function startExam() {
     console.error(e);
     btn.disabled = false;
     btn.textContent = 'Commencer l\'examen';
-    const url = window.location.host;
+    const host = window.location.host;
     const directFile = window.location.protocol === 'file:';
     if (directFile) {
-      setLoginStatus('err', 'Erreur : vous avez ouvert le fichier directement. Utilisez http://localhost/ExamenReseau2DeptReseauModulaire/');
-    } else if (url !== 'localhost' && url !== '127.0.0.1') {
-      setLoginStatus('err', 'Erreur : votre adresse (' + window.location.href + ') est inaccessible depuis l\'intérieur. Utilisez http://localhost/ExamenReseau2DeptReseauModulaire/');
+      setLoginStatus('err', 'Erreur : fichier ouvert directement. Utilisez http://localhost/ExamenReseau2DeptReseauModulaire/');
+    } else if (host.indexOf('github') !== -1) {
+      setLoginStatus('err', 'Cette version (GitHub) ne fonctionne pas : elle n\'a pas de base de données ni de PHP. Utilisez l\'adresse donnée par l\'enseignant (http://localhost/ExamenReseau2DeptReseauModulaire/).');
+    } else if (host !== 'localhost' && host !== '127.0.0.1') {
+      setLoginStatus('err', 'Serveur injoignable via ' + window.location.href + ' — vérifiez la connexion réseau.');
     } else {
       setLoginStatus('err', 'Serveur injoignable — vérifiez que MySQL et Apache sont démarrés.');
     }
