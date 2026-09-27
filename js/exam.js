@@ -651,7 +651,15 @@ async function startExam() {
     console.error(e);
     btn.disabled = false;
     btn.textContent = 'Commencer l\'examen';
-    setLoginStatus('err', 'Serveur injoignable — contactez l\'enseignant.');
+    const url = window.location.host;
+    const directFile = window.location.protocol === 'file:';
+    if (directFile) {
+      setLoginStatus('err', 'Erreur : vous avez ouvert le fichier directement. Utilisez http://localhost/ExamenReseau2DeptReseauModulaire/');
+    } else if (url !== 'localhost' && url !== '127.0.0.1') {
+      setLoginStatus('err', 'Erreur : votre adresse (' + window.location.href + ') est inaccessible depuis l\'intérieur. Utilisez http://localhost/ExamenReseau2DeptReseauModulaire/');
+    } else {
+      setLoginStatus('err', 'Serveur injoignable — vérifiez que MySQL et Apache sont démarrés.');
+    }
   }
 }
 
