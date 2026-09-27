@@ -47,23 +47,6 @@ const QCM_ANSWERS = [
 ];
 
 /* ============================================================
-   SECTION B — Vrai/Faux (10 x 2 pts = 20 pts) — B1 à B8 réécrites
-   plus difficiles, B9 et B10 conservées
-   ============================================================ */
-const VF = [
-  { q: "Si deux trames sont transmises simultanément sur un même segment de réseau partagé, une collision se produit nécessairement, quel que soit le protocole d'accès utilisé.", ans: "Faux" },
-  { q: "Un paquet IP peut atteindre sa destination même si un seul routeur intermédiaire tombe en panne, à condition qu'un chemin alternatif existe.", ans: "Vrai" },
-  { q: "Le port source d'une connexion TCP est presque toujours un port standard et fixe, identique à chaque nouvelle connexion.", ans: "Faux" },
-  { q: "Une adresse IP privée comme 192.168.1.10 peut être directement routée sur Internet sans aucune traduction.", ans: "Faux" },
-  { q: "Dans le modèle OSI, une couche ne peut lire que l'en-tête qu'elle a elle-même ajouté côté émetteur, jamais celui d'une autre couche.", ans: "Vrai" },
-  { q: "Un switch (commutateur) doit consulter une table d'adresses IP pour décider sur quel port envoyer une trame.", ans: "Faux" },
-  { q: "Le protocole UDP est préférable à TCP lorsque la rapidité de transmission importe davantage que la garantie de livraison de chaque paquet.", ans: "Vrai" },
-  { q: "Deux machines sur le même réseau local peuvent communiquer directement par leur adresse MAC sans jamais avoir besoin de connaître leur adresse IP respective.", ans: "Faux" },
-  { q: "Un capteur (sensor) en domotique collecte des données de l'environnement.", ans: "Vrai" },
-  { q: "DNS traduit un nom de domaine en adresse IP.", ans: "Vrai" },
-];
-
-/* ============================================================
    SECTION C — Liste déroulante (6 x 2 pts = 12 pts)
    1 seule question OSI conservée, 5 nouvelles questions techniques
    ============================================================ */
@@ -303,7 +286,6 @@ async function loadSavedAnswers() {
    ============================================================ */
 async function initHashes() {
   for (let i = 0; i < QCM.length; i++) QCM[i].hash = await sha256(QCM_ANSWERS[i]);
-  for (let i = 0; i < VF.length; i++) VF[i].hash = await sha256(VF[i].ans);
   for (let i = 0; i < DD.length; i++) DD[i].hash = await sha256(DD[i].ans);
   for (let i = 0; i < DND.length; i++) DND[i].hash = await sha256(DND[i].chips[0]);
 }
@@ -371,23 +353,21 @@ const NETWORK_DIAGRAM_SVG = `
    ============================================================ */
 const QUESTIONS = [];
 QCM.forEach((q, i) => QUESTIONS.push({ ...q, section: 'A', type: 'qcm', sIdx: i, pts: QCM_PTS }));
-VF.forEach((q, i) => QUESTIONS.push({ ...q, section: 'B', type: 'vf', sIdx: i, pts: 2 }));
+MULTI.forEach((q, i) => QUESTIONS.push({ ...q, section: 'B', type: 'multi', sIdx: i, pts: MULTI_PTS }));
 DD.forEach((q, i) => QUESTIONS.push({ ...q, section: 'C', type: 'dd', sIdx: i, pts: 2 }));
 DND.forEach((q, i) => QUESTIONS.push({ ...q, section: 'D', type: 'dnd', sIdx: i, pts: 2 }));
-MULTI.forEach((q, i) => QUESTIONS.push({ ...q, section: 'E', type: 'multi', sIdx: i, pts: MULTI_PTS }));
-SUBJ.forEach((q, i) => QUESTIONS.push({ ...q, section: 'F', type: 'subj', sIdx: i }));
+SUBJ.forEach((q, i) => QUESTIONS.push({ ...q, section: 'E', type: 'subj', sIdx: i }));
 
-const SECTIONS = ['A','B','C','D','E','F'];
+const SECTIONS = ['A','B','C','D','E'];
 let currentSectionIdx = 0;
 let userAnswers = {};
 
 const SECTION_LABELS = {
   A: 'Section 1 \u2014 Choisir la bonne r\u00e9ponse (1.25 pts chacune)',
-  B: 'Section B \u2014 Vrai ou Faux (2 pts chacune)',
-  C: 'Section C \u2014 Liste d\u00e9roulante (2 pts chacune)',
-  D: 'Section D \u2014 Glisser-d\u00e9poser : \u00e9quipement et concepts r\u00e9seau (2 pts chacun)',
-  E: 'Section 2 \u2014 Cochez toutes les r\u00e9ponses correctes (1.25 pts chacune)',
-  F: 'Section F \u2014 Questions de d\u00e9finition et de r\u00e9flexion (15 pts chacune, 2 sur 3 obligatoires)',
+  B: 'Section 2 \u2014 Cochez toutes les r\u00e9ponses correctes (1.25 pts chacune)',
+  C: 'Section 3 \u2014 Liste d\u00e9roulante (2 pts chacune)',
+  D: 'Section 4 \u2014 Glisser-d\u00e9poser : \u00e9quipement et concepts r\u00e9seau (2 pts chacun)',
+  E: 'Section 5 \u2014 Questions de d\u00e9finition et de r\u00e9flexion (15 pts chacune, 2 sur 3 obligatoires)',
 };
 
 function updateProgress() {
@@ -734,12 +714,13 @@ for (let i = 0; i < QCM.length; i++, qi++) {
     if (correct) score += QCM_PTS; // QCM 1.25 pts chak
     detail.push(`A.${i+1}: ${userAns || '(sans r\u00e9ponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
   }
-  for (let i = 0; i < VF.length; i++, qi++) {
-    const userAns = userAnswers[qi] || null;
-    const userHash = userAns ? await sha256(userAns) : null;
-    const correct = userHash === VF[i].hash;
-    if (correct) score += 2;
-    detail.push(`B.${i+1}: ${userAns || '(sans réponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
+for (let i = 0; i < MULTI.length; i++, qi++) {
+    const userSelected = Array.isArray(userAnswers[qi]) ? userAnswers[qi] : [];
+    const correctSet = new Set(MULTI[i].ans);
+    const userSet = new Set(userSelected);
+    const isExactMatch = correctSet.size === userSet.size && [...correctSet].every(a => userSet.has(a));
+    if (isExactMatch) score += MULTI_PTS; // Multi 1.25 pts chak
+    detail.push(`B.${i+1}: ${userSelected.join(', ') || '(sans r\u00e9ponse)'} ${isExactMatch ? '[correct]' : '[incorrect]'}`);
   }
   for (let i = 0; i < DD.length; i++, qi++) {
     const userAns = userAnswers[qi] || null;
@@ -755,24 +736,16 @@ for (let i = 0; i < QCM.length; i++, qi++) {
     if (correct) score += 2; // Glisser 2 pts chak
     detail.push(`D (${DND[i].target}): ${userAns || '(sans réponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
   }
-for (let qi2 = 0; qi2 < MULTI.length; qi2++, qi++) {
-    const userSelected = Array.isArray(userAnswers[qi]) ? userAnswers[qi] : [];
-    const correctSet = new Set(MULTI[qi2].ans);
-    const userSet = new Set(userSelected);
-    const isExactMatch = correctSet.size === userSet.size && [...correctSet].every(a => userSet.has(a));
-    if (isExactMatch) score += MULTI_PTS; // Multi 1.25 pts chak
-    detail.push(`E.${qi2+1}: ${userSelected.join(', ') || '(sans r\u00e9ponse)'} ${isExactMatch ? '[correct]' : '[incorrect]'}`);
-  }
 
   return { score, detail };
 }
 
 function collectSubjective() {
   let answers = [];
-  let qi = QCM.length + VF.length + DD.length + DND.length + MULTI.length;
+  let qi = QCM.length + MULTI.length + DD.length + DND.length;
   SUBJ.forEach((item, i) => {
     const val = userAnswers[qi + i] || '';
-    answers.push(`F.${i+1} (${item.pts} pts) ${item.q}\n${val || '(sans réponse)'}`);
+    answers.push(`E.${i+1} (${item.pts} pts) ${item.q}\n${val || '(sans réponse)'}`);
   });
   return answers;
 }
