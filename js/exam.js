@@ -156,19 +156,50 @@ const DND = [
 ];
 
 /* ============================================================
-   SECTION E — Choix multiples, plusieurs bonnes réponses
-   (2 x 4 pts = 8 pts)
+   SECTION 2 — Cochez toutes les réponses correctes
+   (8 x 1.25 pts = 10 pts) — réponse incorrecte cochée annule 1 pt
    ============================================================ */
+const MULTI_PTS = 1.25;
 const MULTI = [
   {
-    q: "Quels sont les rôles principaux d'une carte réseau (NIC) ?",
-    opts: ["Convertir les données en signaux électriques ou radio", "Fournir une adresse MAC unique", "Gérer la communication entre l'ordinateur et le réseau", "Servir de pare-feu matériel", "Assurer la transmission et la réception des paquets"],
-    ans: ["Convertir les données en signaux électriques ou radio", "Fournir une adresse MAC unique", "Gérer la communication entre l'ordinateur et le réseau", "Assurer la transmission et la réception des paquets"]
+    q: "Quelles sont les caractéristiques d'une route flottante (floating static route) ?",
+    opts: ["Elle a une distance administrative plus élevée que la route principale", "Elle prend effet uniquement quand la route principale est indisponible", "Elle est apprise via un protocole de routage dynamique", "Elle est utilisée comme route de secours", "Elle a toujours une distance administrative de 1"],
+    ans: ["Elle a une distance administrative plus élevée que la route principale", "Elle prend effet uniquement quand la route principale est indisponible", "Elle est utilisée comme route de secours"]
   },
   {
-    q: "Quels sont les avantages d'une topologie en maillage (mesh) ?",
-    opts: ["Haute tolérance aux pannes", "Redondance des chemins de communication", "Coût réduit en câblage", "Performance stable même en cas de panne d'un lien", "Complexité de gestion faible"],
-    ans: ["Haute tolérance aux pannes", "Redondance des chemins de communication", "Performance stable même en cas de panne d'un lien"]
+    q: "Quels éléments peut-on configurer sur un serveur DHCP d'un routeur Cisco ?",
+    opts: ["L'adresse IP de la passerelle par défaut", "Le masque de sous-réseau", "L'adresse du serveur DNS", "Le protocole de routage à utiliser", "La durée du bail (lease time)"],
+    ans: ["L'adresse IP de la passerelle par défaut", "Le masque de sous-réseau", "L'adresse du serveur DNS", "La durée du bail (lease time)"]
+  },
+  {
+    q: "Parmi ces ports, lesquels sont associés à des protocoles utilisant TCP ?",
+    opts: ["Port 80 (HTTP)", "Port 443 (HTTPS)", "Port 69 (TFTP)", "Port 22 (SSH)"],
+    ans: ["Port 80 (HTTP)", "Port 443 (HTTPS)", "Port 22 (SSH)"]
+  },
+  {
+    q: "Parmi les caractéristiques suivantes, lesquelles s'appliquent à OSPF ?",
+    opts: ["Protocole à état de lien (link-state)", "Utilise l'algorithme de Dijkstra (SPF)", "Protocole propriétaire Cisco", "Élit un routeur désigné (DR) sur les réseaux multi-accès"],
+    ans: ["Protocole à état de lien (link-state)", "Utilise l'algorithme de Dijkstra (SPF)", "Élit un routeur désigné (DR) sur les réseaux multi-accès"]
+  },
+  {
+    q: "Parmi les fonctions suivantes, lesquelles sont propres à un switch de niveau 3 (et non à un switch L2 classique) ?",
+    opts: ["Apprentissage des adresses MAC", "Création de SVI (Switch Virtual Interface)", "Routage inter-VLAN sans routeur externe", "Table de routage IP"],
+    ans: ["Création de SVI (Switch Virtual Interface)", "Routage inter-VLAN sans routeur externe", "Table de routage IP"]
+  },
+  {
+    q: "Concernant le « router on a stick », quelles affirmations sont exactes ?",
+    opts: ["Il nécessite une sous-interface par VLAN sur le routeur", "Il nécessite un lien trunk entre le switch et le routeur", "Il remplace l'utilisation du protocole 802.1Q", "Il permet le routage inter-VLAN avec une seule interface physique"],
+    ans: ["Il nécessite une sous-interface par VLAN sur le routeur", "Il nécessite un lien trunk entre le switch et le routeur", "Il permet le routage inter-VLAN avec une seule interface physique"]
+  },
+  {
+    q: "Sur un switch multicouche (L3) avec routage inter-VLAN par SVI, quelles conditions sont nécessaires pour que le trafic soit correctement routé entre VLAN 10 et VLAN 30 ?",
+    opts: ["La commande globale « ip routing » doit être activée", "Les SVI (interface vlan 10 et interface vlan 30) doivent être en état « up/up »", "Un port physique doit être configuré en mode trunk vers chaque hôte", "Les VLAN 10 et 30 doivent exister et avoir au moins un port actif associé"],
+    ans: ["La commande globale « ip routing » doit être activée", "Les SVI (interface vlan 10 et interface vlan 30) doivent être en état « up/up »", "Les VLAN 10 et 30 doivent exister et avoir au moins un port actif associé"]
+  },
+  {
+    q: "En comparant OSPF et EIGRP, quelles affirmations sont vraies ?",
+    opts: ["OSPF calcule le coût selon la bande passante de l'interface, EIGRP utilise une métrique composite (bande passante et délai par défaut)", "EIGRP converge généralement plus vite grâce à l'algorithme DUAL et aux routes de secours (feasible successor)", "OSPF et EIGRP ont la même distance administrative par défaut", "EIGRP est un protocole à vecteur de distance avancé, OSPF un protocole à état de lien"],
+    ans: ["OSPF calcule le coût selon la bande passante de l'interface, EIGRP utilise une métrique composite (bande passante et délai par défaut)", "EIGRP converge généralement plus vite grâce à l'algorithme DUAL et aux routes de secours (feasible successor)", "EIGRP est un protocole à vecteur de distance avancé, OSPF un protocole à état de lien"]
   },
 ];
 
@@ -343,7 +374,7 @@ QCM.forEach((q, i) => QUESTIONS.push({ ...q, section: 'A', type: 'qcm', sIdx: i,
 VF.forEach((q, i) => QUESTIONS.push({ ...q, section: 'B', type: 'vf', sIdx: i, pts: 2 }));
 DD.forEach((q, i) => QUESTIONS.push({ ...q, section: 'C', type: 'dd', sIdx: i, pts: 2 }));
 DND.forEach((q, i) => QUESTIONS.push({ ...q, section: 'D', type: 'dnd', sIdx: i, pts: 2 }));
-MULTI.forEach((q, i) => QUESTIONS.push({ ...q, section: 'E', type: 'multi', sIdx: i, pts: 4 }));
+MULTI.forEach((q, i) => QUESTIONS.push({ ...q, section: 'E', type: 'multi', sIdx: i, pts: MULTI_PTS }));
 SUBJ.forEach((q, i) => QUESTIONS.push({ ...q, section: 'F', type: 'subj', sIdx: i }));
 
 const SECTIONS = ['A','B','C','D','E','F'];
@@ -355,7 +386,7 @@ const SECTION_LABELS = {
   B: 'Section B \u2014 Vrai ou Faux (2 pts chacune)',
   C: 'Section C \u2014 Liste d\u00e9roulante (2 pts chacune)',
   D: 'Section D \u2014 Glisser-d\u00e9poser : \u00e9quipement et concepts r\u00e9seau (2 pts chacun)',
-  E: 'Section E \u2014 Choix multiples (4 pts chacun)',
+  E: 'Section 2 \u2014 Cochez toutes les r\u00e9ponses correctes (1.25 pts chacune)',
   F: 'Section F \u2014 Questions de d\u00e9finition et de r\u00e9flexion (15 pts chacune, 2 sur 3 obligatoires)',
 };
 
@@ -724,13 +755,13 @@ for (let i = 0; i < QCM.length; i++, qi++) {
     if (correct) score += 2; // Glisser 2 pts chak
     detail.push(`D (${DND[i].target}): ${userAns || '(sans réponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
   }
-  for (let qi2 = 0; qi2 < MULTI.length; qi2++, qi++) {
+for (let qi2 = 0; qi2 < MULTI.length; qi2++, qi++) {
     const userSelected = Array.isArray(userAnswers[qi]) ? userAnswers[qi] : [];
     const correctSet = new Set(MULTI[qi2].ans);
     const userSet = new Set(userSelected);
     const isExactMatch = correctSet.size === userSet.size && [...correctSet].every(a => userSet.has(a));
-    if (isExactMatch) score += 4; // Multi 4 pts chak
-    detail.push(`E.${qi2+1}: ${userSelected.join(', ') || '(sans réponse)'} ${isExactMatch ? '[correct]' : '[incorrect]'}`);
+    if (isExactMatch) score += MULTI_PTS; // Multi 1.25 pts chak
+    detail.push(`E.${qi2+1}: ${userSelected.join(', ') || '(sans r\u00e9ponse)'} ${isExactMatch ? '[correct]' : '[incorrect]'}`);
   }
 
   return { score, detail };
