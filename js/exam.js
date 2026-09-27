@@ -157,7 +157,7 @@ const DND = [
 
 /* ============================================================
    SECTION 2 — Cochez toutes les réponses correctes
-   (8 x 1.25 pts = 10 pts) — réponse incorrecte cochée annule 1 pt
+   (8 x 1.25 pts = 10 pts)
    ============================================================ */
 const MULTI_PTS = 1.25;
 const MULTI = [
