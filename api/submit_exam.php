@@ -20,14 +20,14 @@ $stmt->execute([':sk' => $sessionKey]);
 $session = $stmt->fetch();
 
 if (!$session) {
-    json_out(['ok' => false, 'message' => 'Sesyon pa rekonèt.']);
+    json_out(['ok' => false, 'message' => 'Session non reconnue.']);
 }
 
 if ((int)$session['submitted'] === 1) {
-    json_out(['ok' => false, 'message' => 'Egzamen an soumèt deja.']);
+    json_out(['ok' => false, 'message' => 'L\'examen a déjà été soumis.']);
 }
 
 $stmt = $pdo->prepare('UPDATE exam_sessions SET submitted = 1, submitted_at = NOW() WHERE id = :id');
 $stmt->execute([':id' => $session['id']]);
 
-json_out(['ok' => true, 'message' => 'Egzamen soumèt avèk siksè.']);
+json_out(['ok' => true, 'message' => 'Examen soumis avec succès.']);

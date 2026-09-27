@@ -12,7 +12,7 @@ $sessionKey = (string)($in['session_key'] ?? '');
 $answers = $in['answers'] ?? null;
 
 if ($sessionKey === '' || !is_array($answers)) {
-    json_out(['ok' => false, 'message' => 'Paramèt manke.'], 422);
+    json_out(['ok' => false, 'message' => 'Paramètres manquants.'], 422);
 }
 
 $pdo = db();
@@ -22,15 +22,15 @@ $stmt->execute([':sk' => $sessionKey]);
 $session = $stmt->fetch();
 
 if (!$session) {
-    json_out(['ok' => false, 'message' => 'Sesyon pa rekonèt. Rekòmanse egzamen an.']);
+    json_out(['ok' => false, 'message' => 'Session non reconnue. Recommencez l\'examen.']);
 }
 if ((int)$session['submitted'] === 1) {
-    json_out(['ok' => false, 'submitted' => true, 'message' => 'Egzamen an soumèt deja.']);
+    json_out(['ok' => false, 'submitted' => true, 'message' => 'L\'examen a déjà été soumis.']);
 }
 $nowTs = time();
 $expTs  = (new DateTime($session['expires_at']))->getTimestamp();
 if ($expTs <= $nowTs) {
-    json_out(['ok' => false, 'expired' => true, 'message' => 'Tan egzamen an fini.']);
+    json_out(['ok' => false, 'expired' => true, 'message' => 'Le temps de l\'examen est écoulé.']);
 }
 
 $upsert = $pdo->prepare(

@@ -13,7 +13,7 @@ $code = trim((string)($in['code'] ?? ''));
 $name = trim((string)($in['name'] ?? ''));
 
 if ($code === '' || $name === '') {
-    json_out(['ok' => false, 'message' => 'Kòd ak non obligatwa.'], 422);
+    json_out(['ok' => false, 'message' => 'Le code et le nom sont obligatoires.'], 422);
 }
 
 $pdo = db();
@@ -23,12 +23,12 @@ $stmt->execute([':code' => $code]);
 $student = $stmt->fetch();
 
 if (!$student) {
-    json_out(['ok' => false, 'message' => 'Kòd sa a pa konnen. Verifye bò kote pwofesè a.']);
+    json_out(['ok' => false, 'message' => 'Ce code n\'est pas reconnu. Vérifiez auprès de votre enseignant.']);
 }
 
 /* Non an dwe koresponn ak non ofisyèl la (enpòtan pou se siy li) */
 if (strcasecmp($student['name'], $name) !== 0) {
-    json_out(['ok' => false, 'message' => 'Kòd sa pa atache ak non sa a. Ou pa ka antre ak kòd yon lòt etidyan.']);
+    json_out(['ok' => false, 'message' => 'Ce code n\'est pas associé à ce nom. Vous ne pouvez pas utiliser le code d\'un autre étudiant.']);
 }
 
 $now = new DateTime();
@@ -38,7 +38,7 @@ $expires = (clone $now)->modify('+' . EXAM_DURATION_MINUTES . ' minutes');
 $done = $pdo->prepare('SELECT id FROM exam_sessions WHERE student_id = :sid AND submitted = 1 LIMIT 1');
 $done->execute([':sid' => $student['id']]);
 if ($done->fetch()) {
-    json_out(['ok' => false, 'message' => 'Ou deja soumèt egzamen an. Ou pa ka antre ankò.']);
+    json_out(['ok' => false, 'message' => 'Vous avez déjà soumis l\'examen. Vous ne pouvez plus y accéder.']);
 }
 
 /* Rekòmanse sesyon an si li poko fin soumèt (pou recovery apre erè) */

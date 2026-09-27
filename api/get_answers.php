@@ -9,7 +9,7 @@ require __DIR__ . '/db.php';
 $in = body_json();
 $sessionKey = trim((string)($in['session_key'] ?? ''));
 if ($sessionKey === '') {
-    json_out(['ok' => false, 'message' => 'session_key obligatwa.'], 422);
+    json_out(['ok' => false, 'message' => 'session_key obligatoire.'], 422);
 }
 
 $pdo = db();
@@ -19,7 +19,7 @@ $stmt->execute([':sk' => $sessionKey]);
 $session = $stmt->fetch();
 
 if (!$session) {
-    json_out(['ok' => false, 'message' => 'Pa gen sesyon.']);
+    json_out(['ok' => false, 'message' => 'Aucune session.']);
 }
 
 $answers = [];
