@@ -26,27 +26,24 @@ async function sha256(text) {
 }
 
 /* ============================================================
-   SECTION A — QCM (11 x 2 pts = 22 pts)
+   SECTION 1 — Choisir la bonne réponse (8 x 1.25 pts = 10 pts)
    ============================================================ */
+const QCM_PTS = 1.25;
 const QCM = [
-  { q: "Que peut-on placer dans ou sur un colis pour en assurer le suivi ?", opts: ["Déclencheur", "Capteur", "Carte d'interface de réseau", "Étiquette RFID"], hash: "" },
-  { q: "Lorsque vous utilisez votre carte bancaire pour effectuer des achats à plusieurs endroits, la société émettrice de la carte peut utiliser ces informations pour connaître votre emplacement et vos préférences. Ce type de données personnelles est connu sous le nom de :", opts: ["Données fournies", "Données observées", "Données déduites", "Données secrètes"], hash: "" },
-  { q: "Reportez-vous à l'illustration (schéma de réseau A — nuage — B). Quel terme identifie correctement le type de périphérique inclus dans la zone B ?", opts: ["Intermédiaire", "Source", "Fin", "Transférer"], img: "schema-reseau", hash: "" },
-  { q: "Quelle adresse ne peut jamais être attribuée à un hôte ?", opts: ["192.168.1.1", "192.168.1.0", "192.168.1.10", "192.168.1.5"], hash: "" },
-  { q: "Combien de bits y a-t-il dans un octet ?", opts: ["4", "8", "16", "32"], hash: "" },
-  { q: "Quel câble réseau utilise des fils de cuivre torsadés par paires ?", opts: ["Câble coaxial", "Câble à paires torsadées (RJ-45)", "Fibre optique", "Câble HDMI"], hash: "" },
-  { q: "Quel port standard utilise le protocole HTTP ?", opts: ["21", "25", "80", "443"], hash: "" },
-  { q: "Quelle topologie réseau relie tous les postes à un point central unique ?", opts: ["Bus", "Étoile", "Anneau", "Maillée"], hash: "" },
-  { q: "Quelle technologie est utilisée pour l'identification sans contact par radiofréquence, courante en domotique ?", opts: ["Bluetooth", "RFID", "NFC", "Zigbee"], hash: "" },
-  { q: "Dans le modèle TCP/IP (4 couches), quelle couche correspond aux couches 5, 6 et 7 du modèle OSI combinées ?", opts: ["Couche Accès réseau", "Couche Internet", "Couche Transport", "Couche Application"], hash: "" },
-  /* Nouvo kesyon A.11 sou IPv6 ajoute -- examen_reseau_v2 */
-  { q: "Reportez-vous à l'illustration. Combien de bits sont représentés par chaque groupe de quatre valeurs hexadécimales contenues entre les deux points dans une adresse IPv6 ?", opts: ["8", "4", "64", "32", "16"], img: "ipv6", hash: "" },
+  { q: "Quelle adresse IP ne fait pas partie des plages privées RFC 1918 ?", opts: ["10.25.10.5", "172.20.5.10", "192.168.1.50", "200.4.126.3"], hash: "" },
+  { q: "Une organisation possède le bloc 10.20.0.0/16 et doit créer des sous-réseaux prenant en charge au moins 500 hôtes utilisables chacun. Quel préfixe fournit la capacité requise tout en minimisant le gaspillage d'adresses ?", opts: ["/23", "/22", "/24", "/25", "/27"], hash: "" },
+  { q: "Un ordinateur a une adresse IP de 127.0.0.1 qu'est-ce-que cela indique ?", opts: ["APIPA", "DHCP Failure", "Default Gateway", "Loopback", "DNS"], hash: "" },
+  { q: "Un administrateur réseau dispose du réseau 192.168.10.0/24 et doit créer au moins 6 sous-réseaux de taille égale. Quel préfixe CIDR doit être utilisé ?", opts: ["/21", "/25", "/26", "/27", "/28"], hash: "" },
+  { q: "Une entreprise s'est vu attribuer le réseau IPv4 192.168.50.0/26 pour un nouveau département. Combien d'adresses d'hôtes utilisables sont disponibles dans ce sous-réseau ?", opts: ["30", "128", "98", "64", "62"], hash: "" },
+  { q: "Quelle commande Cisco permet de configurer une route statique vers le réseau 192.168.10.0/24 via le prochain saut 10.0.0.1 ?", opts: ["Ip route 192.168.10.0 255.255.255.0 10.0.0.1", "Ip route 10.0.0.1 192.168.10.0 255.255.255.0", "Ip static-route 192.168.10.0/24 10.0.0.1", "Route add 192.168.10.0 via 10.0.0.1"], hash: "" },
+  { q: "Soit cette topologie ci-dessous. Le lien entre R2 et R3 a été annulé. Quelle route principale doit-on emprunter comme route de secours pour atteindre le réseau Bureautique ?", opts: ["Ip route 192.168.10.0 255.255.255.0 10.1.1.6", "Ip route 192.168.20.0 255.255.255.0 10.1.1.0", "Ip route 192.168.30.0 255.255.255.0 10.1.1.6", "Ip route 192.168.30.0 255.255.255.0 10.1.1.2", "Ip route 192.168.30.0 255.255.255.0 10.1.1.10 5"], img: "q7-topologie", hash: "" },
+  { q: "Parmi toutes ces commandes, laquelle est utilisée pour afficher un résumé des interfaces actives en OSPF ?", opts: ["router ospf <ID-processus>", "network <réseau> <wildcard> area <n>", "show ip ospf neighbor", "show ip ospf interface brief", "passive-interface <intf>"], hash: "" },
 ];
 const QCM_ANSWERS = [
-  "Étiquette RFID", "Données déduites", "Intermédiaire", "192.168.1.0", "8",
-  "Câble à paires torsadées (RJ-45)", "80", "Étoile", "RFID", "Couche Application",
-  /* Repons kesyon A.11 IPv6 -- examen_reseau_v2 */
-  "16"
+  "200.4.126.3", "/23", "Loopback", "/27", "62",
+  "Ip route 192.168.10.0 255.255.255.0 10.0.0.1",
+  "Ip route 192.168.30.0 255.255.255.0 10.1.1.10 5",
+  "show ip ospf interface brief"
 ];
 
 /* ============================================================
@@ -342,7 +339,7 @@ const NETWORK_DIAGRAM_SVG = `
    NAVIGATION PA SEKSYON (tout kesyon nan seksyon an vizib)
    ============================================================ */
 const QUESTIONS = [];
-QCM.forEach((q, i) => QUESTIONS.push({ ...q, section: 'A', type: 'qcm', sIdx: i, pts: 2 }));
+QCM.forEach((q, i) => QUESTIONS.push({ ...q, section: 'A', type: 'qcm', sIdx: i, pts: QCM_PTS }));
 VF.forEach((q, i) => QUESTIONS.push({ ...q, section: 'B', type: 'vf', sIdx: i, pts: 2 }));
 DD.forEach((q, i) => QUESTIONS.push({ ...q, section: 'C', type: 'dd', sIdx: i, pts: 2 }));
 DND.forEach((q, i) => QUESTIONS.push({ ...q, section: 'D', type: 'dnd', sIdx: i, pts: 2 }));
@@ -354,7 +351,7 @@ let currentSectionIdx = 0;
 let userAnswers = {};
 
 const SECTION_LABELS = {
-  A: 'Section A \u2014 Questions \u00e0 choix multiple (2 pts chacune)',
+  A: 'Section 1 \u2014 Choisir la bonne r\u00e9ponse (1.25 pts chacune)',
   B: 'Section B \u2014 Vrai ou Faux (2 pts chacune)',
   C: 'Section C \u2014 Liste d\u00e9roulante (2 pts chacune)',
   D: 'Section D \u2014 Glisser-d\u00e9poser : \u00e9quipement et concepts r\u00e9seau (2 pts chacun)',
@@ -387,6 +384,8 @@ function buildQuestionHTML(idx, q) {
     html += `<div style="margin-bottom:16px;text-align:center">${NETWORK_DIAGRAM_SVG}</div>`;
   } else if (q.img === 'ipv6') {
     html += `<div style="margin-bottom:16px;text-align:center">${IPV6_DIAGRAM_SVG}</div>`;
+  } else if (q.img === 'q7-topologie') {
+    html += `<div style="margin-bottom:16px;text-align:center"><img src="img/section1-q7-topologie.png" alt="Topologie r\u00e9seau" style="max-width:100%;border-radius:8px;border:1px solid var(--border)"></div>`;
   }
 
   if (q.type === 'qcm' || q.type === 'vf') {
@@ -697,12 +696,12 @@ async function gradeObjective() {
   let detail = [];
   let qi = 0;
 
-  for (let i = 0; i < QCM.length; i++, qi++) {
+for (let i = 0; i < QCM.length; i++, qi++) {
     const userAns = userAnswers[qi] || null;
     const userHash = userAns ? await sha256(userAns) : null;
     const correct = userHash === QCM[i].hash;
-    if (correct) score += 2; // QCM 2 pts chak
-    detail.push(`A.${i+1}: ${userAns || '(sans réponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
+    if (correct) score += QCM_PTS; // QCM 1.25 pts chak
+    detail.push(`A.${i+1}: ${userAns || '(sans r\u00e9ponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
   }
   for (let i = 0; i < VF.length; i++, qi++) {
     const userAns = userAnswers[qi] || null;
@@ -798,13 +797,17 @@ async function submitExam(autoSubmit) {
 function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
   lastEmailSubject = `Résultats Réseau 2 — ${studentName}`;
 
+  const autoTotal = QUESTIONS.reduce((s, q) => q.type === 'subj' ? s : s + (q.pts || 0), 0);
+  const subjTotal = QUESTIONS.filter(q => q.type === 'subj').reduce((s, q) => s + (q.pts || 0), 0);
+  const grandTotal = autoTotal + subjTotal;
+
   let body = '';
   body += `╔══════════════════════════════════════════════════════════╗\n`;
   body += `║            RÉSEAU 2 — RÉSULTATS D'EXAMEN              ║\n`;
   body += `╚══════════════════════════════════════════════════════════╝\n\n`;
   body += `Étudiant : ${studentName}\n`;
   body += `${'─'.repeat(60)}\n\n`;
-  body += `NOTE AUTOMATIQUE (A+B+C+D+E) : ${objectiveScore} / 70\n`;
+  body += `NOTE AUTOMATIQUE : ${objectiveScore} / ${autoTotal}\n`;
   body += `${'─'.repeat(60)}\n`;
   body += ` Détail des réponses automatiques\n`;
   body += `${'─'.repeat(60)}\n`;
@@ -813,7 +816,7 @@ function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
     body += ` ${display}\n`;
   });
   body += `\n${'═'.repeat(60)}\n`;
-  body += ` SECTION F — Questions subjectives (30 pts, 2/3 obligatoires)\n`;
+  body += ` QUESTIONS SUBJECTIVES (${subjTotal} pts)\n`;
   body += `${'═'.repeat(60)}\n\n`;
   subjectiveAnswers.forEach(ans => {
     const lines = ans.split('\n');
@@ -824,10 +827,10 @@ function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
   body += `\n${'═'.repeat(60)}\n`;
   body += ` CALCUL FINAL (à compléter par l'enseignant)\n`;
   body += `${'═'.repeat(60)}\n`;
-  body += ` Note automatique        : ${objectiveScore} / 70\n`;
-  body += ` Note manuelle (Section F) : ____ / 30\n`;
+  body += ` Note automatique        : ${objectiveScore} / ${autoTotal}\n`;
+  body += ` Note manuelle (subjectif) : ____ / ${subjTotal}\n`;
   body += ` ───────────────────────────\n`;
-  body += ` TOTAL                   : ____ / 100\n`;
+  body += ` TOTAL                   : ____ / ${grandTotal}\n`;
   body += ` Seuil de réussite        : 65 / 100\n\n`;
   body += `${'─'.repeat(60)}\n`;
   body += ` Document généré automatiquement — Examen Réseau 2\n`;
