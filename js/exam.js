@@ -258,6 +258,27 @@ async function loadSavedAnswers() {
 }
 
 /* ============================================================
+   SAVE FINAL — paj ap fèmen (erè / BFCache / tab) pou pa pèdi
+   dènye repons yo. `fetch` vin bloke sou unload, nou itilize
+   `sendBeacon` ki ap kontinye fè rete apre paj la fèmen.
+   ============================================================ */
+function finalFlush() {
+  if (!sessionKey || examSubmitted) return;
+  try {
+    const blob = new Blob([JSON.stringify({ session_key: sessionKey, answers: userAnswers })], { type: 'application/json' });
+    let sent = false;
+    try { sent = navigator.sendBeacon('api/save_answers.php', blob); } catch (e) { sent = false; }
+    if (!sent) {
+      fetch('api/save_answers.php', { method: 'POST', keepalive: true, body: blob }).catch(() => {});
+    }
+  } catch (e) { /* silansye */ }
+}
+window.addEventListener('pagehide', finalFlush);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') finalFlush();
+});
+
+/* ============================================================
    INITIALISATION DES HASHES
    ============================================================ */
 async function initHashes() {

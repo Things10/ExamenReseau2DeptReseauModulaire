@@ -36,8 +36,31 @@ $expires = (clone $now)->modify('+' . EXAM_DURATION_MINUTES . ' minutes');
 
 $isTest = (int)($student['is_test'] ?? 0) === 1;
 
-/* Kont tès : pa janm bloke, rekòmanse nèt chak fwa (testeur ka soumèt plizyè fwa) */
+/* Kont tès : ki pa janm bloke, men ki kapab relanse yon sesyon ki poko soumèt
+   (konsa testeur ka fermen paj la epi jwenn repons li anko apre re-entrée) */
 if ($isTest) {
+    $stmt = $pdo->prepare(
+        'SELECT id, session_key, expires_at
+           FROM exam_sessions
+          WHERE student_id = :sid AND submitted = 0
+          ORDER BY id DESC LIMIT 1'
+    );
+    $stmt->execute([':sid' => $student['id']]);
+    $existing = $stmt->fetch();
+
+    if ($existing && new DateTime($existing['expires_at']) > $now) {
+        json_out([
+            'ok'        => true,
+            'resuming'  => true,
+            'is_test'   => true,
+            'session_key' => $existing['session_key'],
+            'expires_at'  => $existing['expires_at'],
+            'remaining_seconds' => (new DateTime($existing['expires_at']))->getTimestamp() - $now->getTimestamp(),
+            'student'     => ['code' => $student['code'], 'name' => $student['name']],
+        ]);
+    }
+
+    /* Si sesyon an soumèt oubyen ekspire -> rekòmanse nèt (testeur ka soumèt plizyè fwa) */
     $pdo->prepare('DELETE FROM exam_sessions WHERE student_id = :sid')->execute([':sid' => $student['id']]);
     $sessionKey = hash('sha256', $code . '|' . $student['id'] . '|examen-reseau2-test');
     $pdo->prepare(
