@@ -118,7 +118,7 @@ const EXOS = [
   {
     title: "Exercice 3 \u2014 VLSM",
     type: 'vlsm',
-    intro: "Etudiez le plan d'adressage VLSM pr\u00e9sent\u00e9 sur les sch\u00e9mas ci-dessous et compl\u00e9tez le tableau des sous-r\u00e9seaux.",
+    intro: "Etudiez le plan d'adressage VLSM pr\u00e9sent\u00e9 sur les sch\u00e9mas ci-dessus et compl\u00e9tez le tableau des sous-r\u00e9seaux.",
     imgs: ["img/section4-exo3-vlsm1.png", "img/section4-exo3-vlsm2.png"],
     tableCols: ["Nom de r\u00e9seau", "Adresse r\u00e9seau", "Masque d\u00e9cimal", "Adresse d\u00e9but", "Adresse fin", "Adresse diffusion", "Nombre d'h\u00f4tes"],
     vlsmRows: ["Beni-Mellal", "Oued zem", "Khenifra", "Azillal", "Bejaad", "Khouribga", "Tadla", "Wan1", "Wan2", "Wan3"]
@@ -172,17 +172,6 @@ const MULTI = [
     ans: ["OSPF calcule le coût selon la bande passante de l'interface, EIGRP utilise une métrique composite (bande passante et délai par défaut)", "EIGRP converge généralement plus vite grâce à l'algorithme DUAL et aux routes de secours (feasible successor)", "EIGRP est un protocole à vecteur de distance avancé, OSPF un protocole à état de lien"]
   },
 ];
-
-/* ============================================================
-   SECTION F — Questions subjectives (30 pts, 3 questions)
-   2 des 3 questions sont obligatoires
-   ============================================================ */
-const SUBJ = [
-  { q: "Définissez ce qu'est un réseau informatique et expliquez la différence entre un réseau LAN et un réseau WAN.", pts: 15 },
-  { q: "Expliquez le rôle du modèle OSI. Pourquoi un modèle en couches est-il utile pour comprendre les réseaux ?", pts: 15 },
-  { q: "Expliquez la différence entre TCP et UDP. Dans quel cas utiliserait-on plutôt UDP malgré son manque de fiabilité ?", pts: 15 },
-];
-const SUBJ_NOTE = "2 des 3 questions subjectives sont obligatoires";
 
 let timerInterval = null;
 let syncTimerInterval = null;
@@ -341,9 +330,8 @@ QCM.forEach((q, i) => QUESTIONS.push({ ...q, section: 'A', type: 'qcm', sIdx: i,
 MULTI.forEach((q, i) => QUESTIONS.push({ ...q, section: 'B', type: 'multi', sIdx: i, pts: MULTI_PTS }));
 DEF.forEach((q, i) => QUESTIONS.push({ ...q, section: 'C', type: 'def', sIdx: i, pts: DEF_PTS }));
 EXOS.forEach((q, i) => QUESTIONS.push({ ...q, section: 'D', type: 'exo', sIdx: i, pts: 0 }));
-SUBJ.forEach((q, i) => QUESTIONS.push({ ...q, section: 'E', type: 'subj', sIdx: i }));
 
-const SECTIONS = ['A','B','C','D','E'];
+const SECTIONS = ['A','B','C','D'];
 let currentSectionIdx = 0;
 let userAnswers = {};
 
@@ -352,7 +340,6 @@ const SECTION_LABELS = {
   B: 'Section 2 \u2014 Cochez toutes les r\u00e9ponses correctes (1.25 pts chacune)',
   C: 'Section 3 \u2014 D\u00e9finir et expliquer avec vos propres mots (3 pts chacune)',
   D: 'Section 4 \u2014 Exo CIDR et VLSM (15 pts, un exercice obligatoire)',
-  E: 'Section 5 \u2014 Questions de d\u00e9finition et de r\u00e9flexion (15 pts chacune, 2 sur 3 obligatoires)',
 };
 
 function updateProgress() {
@@ -482,9 +469,7 @@ function renderSection(sectionIdx) {
   container.className = '';
 
   let html = '';
-  if (section === 'E') {
-    html += `<p class="subj-note">${SUBJ_NOTE}</p>`;
-  } else if (section === 'D') {
+  if (section === 'D') {
     html += `<p class="subj-note">${EXOS_NOTE}</p>`;
   }
   QUESTIONS.forEach((q, idx) => {
@@ -794,10 +779,6 @@ function collectSubjective() {
     }
     answers.push(out);
   });
-  SUBJ.forEach((item, i) => {
-    const val = userAnswers[QCM.length + MULTI.length + DEF.length + EXOS.length + i] || '';
-    answers.push(`E.${i+1} (${item.pts} pts) ${item.q}\n${val || '(sans réponse)'}`);
-  });
   return answers;
 }
 
@@ -855,7 +836,7 @@ function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
   const autoTotal = QUESTIONS.reduce((s, q) => (q.type === 'subj' || q.type === 'def' || q.type === 'exo') ? s : s + (q.pts || 0), 0);
   const subjTotal = QUESTIONS.filter(q => q.type === 'subj' || q.type === 'def' || q.type === 'exo').reduce((s, q) => s + (q.pts || 0), 0) + EXOS_TOTAL;
   const grandTotal = autoTotal + subjTotal;
-  const seuil = 62;
+  const seuil = 33;
 
   let body = '';
   body += `╔══════════════════════════════════════════════════════════╗\n`;
