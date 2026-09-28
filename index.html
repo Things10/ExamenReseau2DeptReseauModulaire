@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Examen — Réseau 2</title>
-<link rel="stylesheet" href="css/style.css?v=20260927">
+<link rel="stylesheet" href="css/style.css?v=20261002">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
@@ -122,10 +122,11 @@
     <div class="modal-icon">!</div>
     <div class="modal-title">Attention</div>
     <div class="modal-msg">Message.</div>
-    <button class="modal-btn" onclick="closeModal()">Compris</button>
+    <button class="modal-btn modal-btn-return" id="modal-btn-return" onclick="returnToExam()" style="display:none">Retourner sur l'examen</button>
+    <button class="modal-btn modal-btn-ghost" onclick="closeModal()">Fermer</button>
   </div>
 </div>
 
-<script src="js/exam.js?v=20261001"></script>
+<script src="js/exam.js?v=20261002"></script>
 </body>
 </html>

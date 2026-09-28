@@ -569,8 +569,23 @@ function closeModal() {
   document.querySelector('.modal-icon').textContent = '!';
   document.querySelector('.modal-title').textContent = 'Attention';
   document.querySelector('.modal-msg').innerHTML = 'Vous devez r\u00e9pondre \u00e0 au moins une question avant de soumettre.';
+  const rb = document.getElementById('modal-btn-return');
+  if (rb) { rb.style.display = 'none'; }
   const ni = document.getElementById('access-code');
   if (ni) { ni.focus(); ni.select(); }
+}
+
+function returnToExam() {
+  closeModal();
+  const sum = document.getElementById('screen-summary');
+  if (sum) sum.style.display = 'none';
+  document.getElementById('q-section-label').style.display = 'block';
+  document.getElementById('q-container').style.display = 'block';
+  document.getElementById('nav-zone').style.display = 'block';
+  currentSectionIdx = 0;
+  renderSection(0);
+  updateProgress();
+  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
 }
 
 function showSummary() {
@@ -605,10 +620,12 @@ function showSummary() {
 /* ============================================================
    DÉMARRAGE DE L'EXAMEN (validation côté serveur)
    ============================================================ */
-function showModal(title, msg) {
+function showModal(title, msg, showReturn) {
   document.querySelector('.modal-icon').textContent = '!';
   document.querySelector('.modal-title').textContent = title;
   document.querySelector('.modal-msg').textContent = msg;
+  const rb = document.getElementById('modal-btn-return');
+  if (rb) { rb.style.display = showReturn ? 'block' : 'none'; }
   document.getElementById('modal-overlay').classList.add('show');
 }
 
@@ -801,7 +818,7 @@ function hasAnyAnswer() {
 async function submitExam(autoSubmit) {
   if (examSubmitted) return;
   if (!autoSubmit && !hasAnyAnswer()) {
-    showModal('Attention', 'Vous devez répondre à au moins une question avant de soumettre.');
+    showModal('Attention', 'Vous devez répondre à au moins une question avant de soumettre.', true);
     return;
   }
   examSubmitted = true;
