@@ -18,7 +18,7 @@ if ($code === '' || $name === '') {
 
 $pdo = db();
 
-$stmt = $pdo->prepare('SELECT id, code, name FROM students WHERE code = :code');
+$stmt = $pdo->prepare('SELECT id, code, name, is_test FROM students WHERE code = :code');
 $stmt->execute([':code' => $code]);
 $student = $stmt->fetch();
 
@@ -33,6 +33,32 @@ if (strcasecmp($student['name'], $name) !== 0) {
 
 $now = new DateTime();
 $expires = (clone $now)->modify('+' . EXAM_DURATION_MINUTES . ' minutes');
+
+$isTest = (int)($student['is_test'] ?? 0) === 1;
+
+/* Kont tès : pa janm bloke, rekòmanse nèt chak fwa (testeur ka soumèt plizyè fwa) */
+if ($isTest) {
+    $pdo->prepare('DELETE FROM exam_sessions WHERE student_id = :sid')->execute([':sid' => $student['id']]);
+    $sessionKey = hash('sha256', $code . '|' . $student['id'] . '|examen-reseau2-test');
+    $pdo->prepare(
+        'INSERT INTO exam_sessions (student_id, session_key, started_at, expires_at)
+         VALUES (:sid, :sk, :start, :exp)'
+    )->execute([
+        ':sid'   => $student['id'],
+        ':sk'    => $sessionKey,
+        ':start' => $now->format('Y-m-d H:i:s'),
+        ':exp'   => $expires->format('Y-m-d H:i:s'),
+    ]);
+    json_out([
+        'ok'            => true,
+        'resuming'      => false,
+        'is_test'       => true,
+        'session_key'   => $sessionKey,
+        'expires_at'    => $expires->format('Y-m-d H:i:s'),
+        'remaining_seconds' => EXAM_DURATION_MINUTES * 60,
+        'student'       => ['code' => $student['code'], 'name' => $student['name']],
+    ]);
+}
 
 /* Si gen sesyon ki fin soumèt deja, bloke l */
 $done = $pdo->prepare('SELECT id FROM exam_sessions WHERE student_id = :sid AND submitted = 1 LIMIT 1');

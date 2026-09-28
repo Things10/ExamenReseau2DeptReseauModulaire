@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS students (
   id INT AUTO_INCREMENT PRIMARY KEY,
   code VARCHAR(20) NOT NULL UNIQUE,
   name VARCHAR(120) NOT NULL,
+  is_test TINYINT(1) NOT NULL DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -50,17 +51,17 @@ CREATE TABLE IF NOT EXISTS answers (
 -- SEED — Lis etidyan yo (MODIFYE selon lis klas ou)
 -- Kod la YONIK + non ofisyèl obligatwa pou antre
 -- ------------------------------------------------------------
-INSERT INTO students (code, name) VALUES
-  ('RES2-01', 'GAUCHIER Steven'),
-  ('RES2-02', 'Deshley REJOUIS'),
-  ('RES2-03', 'FLERIVAL Wiselet'),
-  ('RES2-04', 'Ezechiel EXUME'),
-  ('RES2-05', 'CLERVILLE Stephania'),
-  ('RES2-06', 'Belando DESIR'),
-  ('RES2-07', 'OVIDE Samuel'),
-  ('RES2-08', 'Frederic Schnyder'),
-  ('RES2-09', 'Verna Josephine Angella'),
-  ('RES2-10', 'Einstein Medjuvens LAFONTANT'),
-  ('RES2-11', 'Miralus Kervens'),
-  ('RES2-12', 'Lovinsky FEDNA')
-ON DUPLICATE KEY UPDATE name = VALUES(name);
+INSERT INTO students (code, name, is_test) VALUES
+  ('RES2-01', 'GAUCHIER Steven', 1),
+  ('RES2-02', 'Deshley REJOUIS', 0),
+  ('RES2-03', 'FLERIVAL Wiselet', 0),
+  ('RES2-04', 'Ezechiel EXUME', 0),
+  ('RES2-05', 'CLERVILLE Stephania', 0),
+  ('RES2-06', 'Belando DESIR', 0),
+  ('RES2-07', 'OVIDE Samuel', 0),
+  ('RES2-08', 'Frederic Schnyder', 0),
+  ('RES2-09', 'Verna Josephine Angella', 0),
+  ('RES2-10', 'Einstein Medjuvens LAFONTANT', 0),
+  ('RES2-11', 'Miralus Kervens', 0),
+  ('RES2-12', 'Lovinsky FEDNA', 0)
+ON DUPLICATE KEY UPDATE name = VALUES(name), is_test = VALUES(is_test);
