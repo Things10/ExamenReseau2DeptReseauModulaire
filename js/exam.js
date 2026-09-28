@@ -413,7 +413,7 @@ function buildQuestionHTML(idx, q) {
     if (q.table4) {
       html += `<div class="exo-table-wrap">`;
       html += `<p class="exo-note-table">${q.table4.note}</p>`;
-      html += `<table class="exo-table" id="exo-table-${idx}">`;
+      html += `<table class="exo-table exo-table-4" id="exo-table-${idx}">`;
       html += `<thead><tr>`;
       q.table4.cols.forEach((col, c) => {
         html += `<th>${col}</th>`;

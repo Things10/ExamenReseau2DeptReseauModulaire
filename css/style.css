@@ -375,6 +375,10 @@
   .exo-table-input:focus { outline: none; }
   .exo-table td:focus-within { background: rgba(46,107,130,0.08); }
   .exo-table-wrap { overflow-x: auto; }
+  .exo-table.exo-table-4 { min-width: 0; max-width: 760px; }
+  .exo-table.exo-table-4 th { padding: 12px 18px; }
+  .exo-table.exo-table-4 td { padding: 6px 10px; }
+  .exo-table.exo-table-4 .exo-table-input { min-width: 240px; font-size: 13px; padding: 8px 6px; }
 
   @media (max-width: 600px) {
     #screen-intro h1 { font-size: 28px; }
