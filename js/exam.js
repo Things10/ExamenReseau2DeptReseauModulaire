@@ -47,39 +47,31 @@ const QCM_ANSWERS = [
 ];
 
 /* ============================================================
-   SECTION C — Liste déroulante (6 x 2 pts = 12 pts)
-   1 seule question OSI conservée, 5 nouvelles questions techniques
+   SECTION C — Définir et expliquer avec vos propres mots
+   (5 x 3 pts = 15 pts)
    ============================================================ */
-const DD = [
+const DEF_PTS = 3;
+const DEF = [
   {
-    q: "Quel processus consiste à placer un format de message à l'intérieur d'un autre format de message ?",
-    options: ["Codage", "Contrôle de flux", "Segmentation", "Encapsulation"],
-    ans: "Encapsulation"
+    q: "Soit la topologie ci-dessous :\n\nUn technicien, après avoir configuré un routeur en mode redistribute pour que RIP et OSPF communiquent entre eux, affiche la table de routage du routeur RB avec la commande show ip route :\n\nExpliquez la route RIP (R) et la route OSPF (O).",
+    imgs: ["img/section3-topologie.png", "img/section3-rib.png"],
+    pts: DEF_PTS
   },
   {
-    q: "Quelle bande RF sans fil les appareils IEEE 802.11b/g utilisent-ils ?",
-    options: ["60 GHz", "2,4 GHz", "5 GHz", "3900 MHz"],
-    ans: "2,4 GHz"
+    q: "Selon vous, quelle différence existe-t-il entre la distance administrative (AD) et la métrique ?",
+    pts: DEF_PTS
   },
   {
-    q: "Quel type de modèle de réseau décrit les fonctions qui doivent intervenir sur une couche particulière sans indiquer comment chaque protocole doit fonctionner ?",
-    options: ["Modèle de protocole", "Modèle TCP/IP", "Modèle de référence", "Modèle de conception hiérarchique"],
-    ans: "Modèle de référence"
+    q: "Expliquez le concept Router on a stick (ROAS).",
+    pts: DEF_PTS
   },
   {
-    q: "Quelle commande un technicien doit-il utiliser pour afficher les connexions réseau sur un ordinateur hôte ?",
-    options: ["tracert", "netstat", "nslookup", "ipconfig"],
-    ans: "netstat"
+    q: "Faites la différence entre une adresse privée et publique. Que fait la technologie NAT dans les routeurs ?",
+    pts: DEF_PTS
   },
   {
-    q: "Quelle technologie de codage des données est utilisée dans les câbles en cuivre ?",
-    options: ["Modulation de fréquences spécifiques d'ondes électromagnétiques", "Impulsions électriques", "Impulsions lumineuses", "Modulation des rayons lumineux"],
-    ans: "Impulsions électriques"
-  },
-  {
-    q: "Protocole HTTP — à quelle couche du modèle OSI appartient-il ?",
-    options: ["Physique", "Liaison de données", "Réseau", "Transport", "Application"],
-    ans: "Application"
+    q: "Faites la différence entre CIDR et VLSM.",
+    pts: DEF_PTS
   },
 ];
 
@@ -286,7 +278,6 @@ async function loadSavedAnswers() {
    ============================================================ */
 async function initHashes() {
   for (let i = 0; i < QCM.length; i++) QCM[i].hash = await sha256(QCM_ANSWERS[i]);
-  for (let i = 0; i < DD.length; i++) DD[i].hash = await sha256(DD[i].ans);
   for (let i = 0; i < DND.length; i++) DND[i].hash = await sha256(DND[i].chips[0]);
 }
 
@@ -354,7 +345,7 @@ const NETWORK_DIAGRAM_SVG = `
 const QUESTIONS = [];
 QCM.forEach((q, i) => QUESTIONS.push({ ...q, section: 'A', type: 'qcm', sIdx: i, pts: QCM_PTS }));
 MULTI.forEach((q, i) => QUESTIONS.push({ ...q, section: 'B', type: 'multi', sIdx: i, pts: MULTI_PTS }));
-DD.forEach((q, i) => QUESTIONS.push({ ...q, section: 'C', type: 'dd', sIdx: i, pts: 2 }));
+DEF.forEach((q, i) => QUESTIONS.push({ ...q, section: 'C', type: 'def', sIdx: i, pts: DEF_PTS }));
 DND.forEach((q, i) => QUESTIONS.push({ ...q, section: 'D', type: 'dnd', sIdx: i, pts: 2 }));
 SUBJ.forEach((q, i) => QUESTIONS.push({ ...q, section: 'E', type: 'subj', sIdx: i }));
 
@@ -365,7 +356,7 @@ let userAnswers = {};
 const SECTION_LABELS = {
   A: 'Section 1 \u2014 Choisir la bonne r\u00e9ponse (1.25 pts chacune)',
   B: 'Section 2 \u2014 Cochez toutes les r\u00e9ponses correctes (1.25 pts chacune)',
-  C: 'Section 3 \u2014 Liste d\u00e9roulante (2 pts chacune)',
+  C: 'Section 3 \u2014 D\u00e9finir et expliquer avec vos propres mots (3 pts chacune)',
   D: 'Section 4 \u2014 Glisser-d\u00e9poser : \u00e9quipement et concepts r\u00e9seau (2 pts chacun)',
   E: 'Section 5 \u2014 Questions de d\u00e9finition et de r\u00e9flexion (15 pts chacune, 2 sur 3 obligatoires)',
 };
@@ -398,6 +389,11 @@ function buildQuestionHTML(idx, q) {
   } else if (q.img === 'q7-topologie') {
     html += `<div style="margin-bottom:16px;text-align:center"><img src="img/section1-q7-topologie.png" alt="Topologie r\u00e9seau" style="max-width:100%;border-radius:8px;border:1px solid var(--border)"></div>`;
   }
+  if (q.imgs) {
+    q.imgs.forEach(src => {
+      html += `<div style="margin-bottom:16px;text-align:center"><img src="${src}" alt="Sch\u00e9ma" style="max-width:100%;border-radius:8px;border:1px solid var(--border)"></div>`;
+    });
+  }
 
   if (q.type === 'qcm' || q.type === 'vf') {
     const opts = q.type === 'vf' ? ['Vrai', 'Faux'] : q.opts;
@@ -409,13 +405,6 @@ function buildQuestionHTML(idx, q) {
       html += `<label>${opt}</label></div>`;
     });
     html += `</div>`;
-  } else if (q.type === 'dd') {
-    html += `<select class="dd" id="q-${idx}" onchange="ansDD(${idx},this.value)">`;
-    html += `<option value="">\u2014 Choisir une r\u00e9ponse \u2014</option>`;
-    q.options.forEach(o => {
-      html += `<option value="${o}"${userAnswers[idx] === o ? ' selected' : ''}>${o}</option>`;
-    });
-    html += `</select>`;
   } else if (q.type === 'dnd') {
     const chips = q.chips || DND[0].chips;
     const used = userAnswers[idx] || '';
@@ -437,7 +426,7 @@ function buildQuestionHTML(idx, q) {
       html += `<label>${opt}</label></div>`;
     });
     html += `</div>`;
-  } else if (q.type === 'subj') {
+  } else if (q.type === 'subj' || q.type === 'def') {
     html += `<textarea class="subj" id="q-${idx}" oninput="ansSubj(${idx},this.value)" placeholder="Votre r\u00e9ponse...">${userAnswers[idx] || ''}</textarea>`;
   }
 
@@ -453,7 +442,7 @@ function renderSection(sectionIdx) {
   container.className = '';
 
   let html = '';
-  if (section === 'F') {
+  if (section === 'E') {
     html += `<p class="subj-note">${SUBJ_NOTE}</p>`;
   }
   QUESTIONS.forEach((q, idx) => {
@@ -512,7 +501,6 @@ function selMulti(idx, oi) {
   if (cb) cb.checked = !cb.checked;
   scheduleSave();
 }
-function ansDD(idx, val) { userAnswers[idx] = val || ''; scheduleSave(); }
 function ansSubj(idx, val) { userAnswers[idx] = val; scheduleSave(); }
 
 /* === GLISSE-DEPOZE (DND) handlers === */
@@ -722,13 +710,7 @@ for (let i = 0; i < MULTI.length; i++, qi++) {
     if (isExactMatch) score += MULTI_PTS; // Multi 1.25 pts chak
     detail.push(`B.${i+1}: ${userSelected.join(', ') || '(sans r\u00e9ponse)'} ${isExactMatch ? '[correct]' : '[incorrect]'}`);
   }
-  for (let i = 0; i < DD.length; i++, qi++) {
-    const userAns = userAnswers[qi] || null;
-    const userHash = userAns ? await sha256(userAns) : null;
-    const correct = userHash === DD[i].hash;
-    if (correct) score += 2; // Liste 2 pts chak
-    detail.push(`C.${i+1}: ${userAns || '(sans réponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
-  }
+  qi += DEF.length; // DEF (définir/expliquer) corrigées manuellement
   for (let i = 0; i < DND.length; i++, qi++) {
     const userAns = userAnswers[qi] || null;
     const userHash = userAns ? await sha256(userAns) : null;
@@ -742,7 +724,11 @@ for (let i = 0; i < MULTI.length; i++, qi++) {
 
 function collectSubjective() {
   let answers = [];
-  let qi = QCM.length + MULTI.length + DD.length + DND.length;
+  let qi = QCM.length + MULTI.length + DEF.length + DND.length;
+  DEF.forEach((item, i) => {
+    const val = userAnswers[QCM.length + MULTI.length + i] || '';
+    answers.push(`C.${i+1} (${item.pts} pts) ${item.q}\n${val || '(sans réponse)'}`);
+  });
   SUBJ.forEach((item, i) => {
     const val = userAnswers[qi + i] || '';
     answers.push(`E.${i+1} (${item.pts} pts) ${item.q}\n${val || '(sans réponse)'}`);
@@ -801,8 +787,8 @@ async function submitExam(autoSubmit) {
 function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
   lastEmailSubject = `Résultats Réseau 2 — ${studentName}`;
 
-  const autoTotal = QUESTIONS.reduce((s, q) => q.type === 'subj' ? s : s + (q.pts || 0), 0);
-  const subjTotal = QUESTIONS.filter(q => q.type === 'subj').reduce((s, q) => s + (q.pts || 0), 0);
+  const autoTotal = QUESTIONS.reduce((s, q) => (q.type === 'subj' || q.type === 'def') ? s : s + (q.pts || 0), 0);
+  const subjTotal = QUESTIONS.filter(q => q.type === 'subj' || q.type === 'def').reduce((s, q) => s + (q.pts || 0), 0);
   const grandTotal = autoTotal + subjTotal;
 
   let body = '';
@@ -835,7 +821,7 @@ function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
   body += ` Note manuelle (subjectif) : ____ / ${subjTotal}\n`;
   body += ` ───────────────────────────\n`;
   body += ` TOTAL                   : ____ / ${grandTotal}\n`;
-  body += ` Seuil de réussite        : 65 / 100\n\n`;
+  body += ` Seuil de réussite        : 57 / 88\n\n`;
   body += `${'─'.repeat(60)}\n`;
   body += ` Document généré automatiquement — Examen Réseau 2\n`;
 
