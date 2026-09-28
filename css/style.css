@@ -323,6 +323,42 @@
   }
   .modal-btn:hover { opacity: 0.9; }
 
+  /* ===== SECTION D : EXO CIDR / VLSM ===== */
+  .subj-note {
+    background: var(--accent-soft, #E4F5EF); border: 1px solid var(--border);
+    color: var(--text-dim); padding: 10px 14px; border-radius: 8px;
+    font-size: 13.5px; margin-bottom: 18px;
+  }
+  .exo-qs { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+  .exo-q { display: flex; flex-direction: column; gap: 6px; }
+  .exo-q-text { font-size: 14px; line-height: 1.45; color: var(--text); }
+  .exo-input {
+    font-family: var(--mono); font-size: 13.5px; color: var(--text);
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; width: 100%; max-width: 480px;
+  }
+  .exo-note-table { font-size: 12.5px; color: var(--text-dim); margin: 0 0 8px; }
+  .exo-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: auto; }
+  .exo-table th {
+    background: var(--accent); color: #06231A; font-weight: 700; font-size: 12px;
+    padding: 8px 6px; border: 1px solid var(--border); text-align: center;
+  }
+  .exo-table td {
+    border: 1px solid var(--border); padding: 2px 4px;
+  }
+  .exo-table .exo-num {
+    font-family: var(--mono); font-size: 12.5px; color: var(--text-dim);
+    text-align: center; background: rgba(0,0,0,0.03);
+  }
+  .exo-table-input {
+    font-family: var(--mono); font-size: 12.5px; color: var(--text);
+    background: transparent; border: none; width: 100%;
+    padding: 6px 4px; min-width: 0; box-sizing: border-box;
+  }
+  .exo-table-input:focus { outline: none; }
+  .exo-table td:focus-within { background: rgba(46,107,130,0.06); }
+  .exo-table { overflow-x: auto; }
+
   @media (max-width: 600px) {
     #screen-intro h1 { font-size: 28px; }
     .meta-grid { grid-template-columns: 1fr; }

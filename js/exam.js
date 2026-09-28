@@ -76,57 +76,51 @@ const DEF = [
 ];
 
 /* ============================================================
-   SECTION D — Glisser-déposer (4 x 2 pts = 8 pts)
-   Chaque question a son propre jeu de 6 chips
+   SECTION D — Exo CIDR et VLSM (15 pts)
+   3 exercices proposés, un est obligatoire
+   Chaque exercice : réponses courtes + tableau 7 colonnes
    ============================================================ */
-const DND = [
+const EXOS_NOTE = "3 exercices propos\u00e9s, un est obligatoire (15 pts)";
+const EXOS_TOTAL = 15;
+const EXOS = [
   {
-    target: "Hub",
-    q: "Quel est le rôle de ce périphérique réseau ?",
-    chips: [
-      "Diffuse les données reçues vers tous les autres ports, sans aucune distinction de destinataire",
-      "Un répéteur multiport qui nettoie et régénère le signal sur tous les ports",
-      "Un équipement qui filtre le trafic en fonction des adresses MAC",
-      "Un concentrateur qui connecte deux réseaux de types différents",
-      "Un appareil qui convertit le signal numérique en signal analogique",
-      "Un dispositif qui attribue des adresses IP aux machines du réseau"
-    ]
+    title: "Exercice 1 \u2014 CIDR",
+    intro: "Une entreprise dispose du r\u00e9seau 10.0.0.0/8. Elle souhaite le diviser de fa\u00e7on \u00e0 obtenir au minimum 100 sous-r\u00e9seaux, chacun devant pouvoir contenir au minimum 500 h\u00f4tes.",
+    qs: [
+      "1- Quel est le masque le plus adapt\u00e9 (CIDR) ?",
+      "1- Quel est ce masque en d\u00e9cimal ?",
+      "2- Combien de sous-r\u00e9seaux exactement ce masque permet-il de cr\u00e9er ?",
+      "3- Combien d'h\u00f4tes utilisables par sous-r\u00e9seau ?",
+      "5- \u00c0 quel sous-r\u00e9seau appartient l'adresse 10.45.130.200 ?",
+      "5- Quelle est l'adresse de broadcast de ce sous-r\u00e9seau ?"
+    ],
+    tableCols: ["N\u00b0", "Adresse r\u00e9seau", "Masque CIDR", "Masque d\u00e9cimal", "1re IP utilisable", "Derni\u00e8re IP", "Broadcast"],
+    noteTable: "Question 4 : donner les 4 premiers sous-r\u00e9seaux (adresse r\u00e9seau, plage d'h\u00f4tes, broadcast)."
   },
   {
-    target: "Rôle du modèle OSI",
-    q: "Pourquoi le modèle OSI est-il organisé en couches ?",
-    chips: [
-      "Pour diviser la communication réseau en étapes indépendantes et faciliter l'interopérabilité",
-      "Pour augmenter la vitesse de transmission en réduisant le nombre de protocoles",
-      "Pour permettre à chaque fabricant de créer ses propres protocoles propriétaires",
-      "Pour centraliser tout le traitement réseau dans une seule couche matérielle",
-      "Pour remplacer complètement la suite TCP/IP dans les réseaux modernes",
-      "Pour garantir que tous les équipements utilisent le même système d'exploitation"
-    ]
+    title: "Exercice 4 \u2014 CIDR",
+    intro: "Soit l'adresse IP attribu\u00e9e \u00e0 un h\u00f4te : 172.16.19.41/21",
+    qs: [
+      "1- Quel est le masque r\u00e9seau de cette adresse (CIDR) ?",
+      "1- Quel est ce masque en d\u00e9cimal ?",
+      "2- Combien de bits ont \u00e9t\u00e9 r\u00e9serv\u00e9s pour le d\u00e9coupage en sous-r\u00e9seaux ?",
+      "3- Combien de sous-r\u00e9seaux peuvent \u00eatre adress\u00e9s gr\u00e2ce \u00e0 ces bits ?",
+      "4- Combien d'h\u00f4tes peut contenir chaque sous-r\u00e9seau ?",
+      "5- Quelle est l'adresse du sous-r\u00e9seau de l'exemple ?",
+      "6- Quelle est l'adresse de broadcast de ce sous-r\u00e9seau ?"
+    ],
+    tableCols: ["N\u00b0", "Adresse r\u00e9seau", "Masque CIDR", "Masque d\u00e9cimal", "1re IP utilisable", "Derni\u00e8re IP", "Broadcast"],
+    noteTable: "D\u00e9taillez vos calculs dans le tableau ci-dessous."
   },
   {
-    target: "TCP vs UDP",
-    q: "Quelle est la différence fondamentale entre TCP et UDP ?",
-    chips: [
-      "TCP est orienté connexion et fiable, UDP est sans connexion et plus rapide",
-      "UDP garantit la livraison des paquets alors que TCP ne le fait pas",
-      "TCP est utilisé pour le streaming vidéo car il sacrifie la fiabilité pour la vitesse",
-      "TCP et UDP sont deux versions du même protocole, UDP étant plus récent",
-      "UDP établit une connexion avant d'envoyer des données, contrairement à TCP",
-      "TCP ne peut pas détecter les paquets perdus et ne les renvoie jamais"
-    ]
-  },
-  {
-    target: "Adresse MAC / IP",
-    q: "Quelle est la différence entre une adresse MAC et une adresse IP ?",
-    chips: [
-      "La MAC est une adresse physique unique attribuée par le fabricant; l'IP est une adresse logique variable",
-      "La MAC est attribuée par le fournisseur d'accès alors que l'IP est fixe et universelle",
-      "La MAC et l'IP sont identiques mais exprimées dans des formats différents",
-      "L'adresse IP est unique au monde tandis que la MAC peut être modifiée",
-      "La MAC sert à router les paquets entre réseaux; l'IP sert à la communication locale",
-      "Une adresse IP est permanente alors qu'une adresse MAC change à chaque connexion"
-    ]
+    title: "Exercice 3 \u2014 VLSM",
+    intro: "Etudiez le plan d'adressage VLSM pr\u00e9sent\u00e9 sur les sch\u00e9mas ci-dessous et compl\u00e9tez les tableaux de sous-r\u00e9seaux.",
+    imgs: ["img/section4-exo3-vlsm1.png", "img/section4-exo3-vlsm2.png"],
+    qs: [
+      "Indiquez votre plan d'adressage VLSM (masques, sous-r\u00e9seaux, plages d'h\u00f4tes, broadcast) :"
+    ],
+    tableCols: ["N\u00b0", "Adresse r\u00e9seau", "Masque CIDR", "Masque d\u00e9cimal", "1re IP utilisable", "Derni\u00e8re IP", "Broadcast"],
+    noteTable: "Un tableau (7 colonnes) par sous-r\u00e9seau demand\u00e9."
   }
 ];
 
@@ -265,7 +259,7 @@ async function loadSavedAnswers() {
     if (res.ok && res.answers) {
       Object.keys(res.answers).forEach(k => {
         const a = res.answers[k];
-        userAnswers[parseInt(k, 10)] = typeof a === 'string' ? a : (Array.isArray(a) ? a : String(a ?? ''));
+        userAnswers[parseInt(k, 10)] = (typeof a === 'object' && a !== null) ? a : (Array.isArray(a) ? a : String(a ?? ''));
       });
     }
     if (res.remaining_seconds) remainingSeconds = res.remaining_seconds;
@@ -278,7 +272,6 @@ async function loadSavedAnswers() {
    ============================================================ */
 async function initHashes() {
   for (let i = 0; i < QCM.length; i++) QCM[i].hash = await sha256(QCM_ANSWERS[i]);
-  for (let i = 0; i < DND.length; i++) DND[i].hash = await sha256(DND[i].chips[0]);
 }
 
 /* ============================================================
@@ -346,7 +339,7 @@ const QUESTIONS = [];
 QCM.forEach((q, i) => QUESTIONS.push({ ...q, section: 'A', type: 'qcm', sIdx: i, pts: QCM_PTS }));
 MULTI.forEach((q, i) => QUESTIONS.push({ ...q, section: 'B', type: 'multi', sIdx: i, pts: MULTI_PTS }));
 DEF.forEach((q, i) => QUESTIONS.push({ ...q, section: 'C', type: 'def', sIdx: i, pts: DEF_PTS }));
-DND.forEach((q, i) => QUESTIONS.push({ ...q, section: 'D', type: 'dnd', sIdx: i, pts: 2 }));
+EXOS.forEach((q, i) => QUESTIONS.push({ ...q, section: 'D', type: 'exo', sIdx: i, pts: 0 }));
 SUBJ.forEach((q, i) => QUESTIONS.push({ ...q, section: 'E', type: 'subj', sIdx: i }));
 
 const SECTIONS = ['A','B','C','D','E'];
@@ -357,7 +350,7 @@ const SECTION_LABELS = {
   A: 'Section 1 \u2014 Choisir la bonne r\u00e9ponse (1.25 pts chacune)',
   B: 'Section 2 \u2014 Cochez toutes les r\u00e9ponses correctes (1.25 pts chacune)',
   C: 'Section 3 \u2014 D\u00e9finir et expliquer avec vos propres mots (3 pts chacune)',
-  D: 'Section 4 \u2014 Glisser-d\u00e9poser : \u00e9quipement et concepts r\u00e9seau (2 pts chacun)',
+  D: 'Section 4 \u2014 Exo CIDR et VLSM (15 pts, un exercice obligatoire)',
   E: 'Section 5 \u2014 Questions de d\u00e9finition et de r\u00e9flexion (15 pts chacune, 2 sur 3 obligatoires)',
 };
 
@@ -405,18 +398,6 @@ function buildQuestionHTML(idx, q) {
       html += `<label>${opt}</label></div>`;
     });
     html += `</div>`;
-  } else if (q.type === 'dnd') {
-    const chips = q.chips || DND[0].chips;
-    const used = userAnswers[idx] || '';
-    html += `<div class="dnd-layout">`;
-    html += `<div class="dnd-equip">${q.target}</div>`;
-    html += `<div class="dnd-pool" id="dnd-pool-${idx}">`;
-    chips.forEach((chip, ci) => {
-      const pl = chip === used;
-      html += `<div class="dnd-chip${pl ? ' placed' : ''}" id="dnd-chip-${idx}-${ci}" draggable="${!pl}" data-text="${chip.replace(/"/g, '&quot;')}" ondragstart="dragStartSingle(event,${idx},${ci})">${chip}</div>`;
-    });
-    html += `</div></div>`;
-    html += `<div class="dnd-slot${used ? ' filled' : ''}" id="dnd-slot-${idx}" ondragover="dragOverSingle(event)" ondrop="dropSingle(event,${idx})">${used || 'D\u00e9posez la description ici'}</div>`;
   } else if (q.type === 'multi') {
     html += `<div class="opt-list">`;
     q.opts.forEach((opt, oi) => {
@@ -428,6 +409,40 @@ function buildQuestionHTML(idx, q) {
     html += `</div>`;
   } else if (q.type === 'subj' || q.type === 'def') {
     html += `<textarea class="subj" id="q-${idx}" oninput="ansSubj(${idx},this.value)" placeholder="Votre r\u00e9ponse...">${userAnswers[idx] || ''}</textarea>`;
+  } else if (q.type === 'exo') {
+    const data = (userAnswers[idx] && typeof userAnswers[idx] === 'object') ? userAnswers[idx] : {};
+    if (q.qs) {
+      html += `<div class="exo-qs">`;
+      q.qs.forEach((qtxt, qi) => {
+        html += `<div class="exo-q"><div class="exo-q-text">${qtxt}</div>`;
+        html += `<input class="exo-input" id="exo-q-${idx}-${qi}" data-idx="${idx}" data-qi="${qi}" value="${(data['q'+qi] || '').replace(/"/g, '&quot;')}" placeholder="Votre r\u00e9ponse\u2026" autocomplete="off"></div>`;
+      });
+      html += `</div>`;
+    }
+    if (q.tableCols) {
+      html += `<p class="exo-note-table">${q.noteTable || ''}</p>`;
+      html += `<table class="exo-table" id="exo-table-${idx}">`;
+      html += `<thead><tr>`;
+      q.tableCols.forEach((col, c) => {
+        html += `<th>${col}</th>`;
+      });
+      html += `</tr></thead>`;
+      html += `<tbody>`;
+      for (let r = 0; r < 10; r++) {
+        html += `<tr>`;
+        for (let c = 0; c < q.tableCols.length; c++) {
+          const val = (data.rows && data.rows[r] && data.rows[r][c]) || '';
+          if (c === 0) {
+            html += `<td class="exo-cell exo-num">${r + 1}</td>`;
+          } else {
+            html += `<td class="exo-cell"><input class="exo-table-input" data-idx="${idx}" data-r="${r}" data-c="${c}" value="${val.replace(/"/g, '&quot;')}" autocomplete="off"></td>`;
+          }
+        }
+        html += `</tr>`;
+      }
+      html += `</tbody>`;
+      html += `</table>`;
+    }
   }
 
   html += `</div>`;
@@ -444,11 +459,21 @@ function renderSection(sectionIdx) {
   let html = '';
   if (section === 'E') {
     html += `<p class="subj-note">${SUBJ_NOTE}</p>`;
+  } else if (section === 'D') {
+    html += `<p class="subj-note">${EXOS_NOTE}</p>`;
   }
   QUESTIONS.forEach((q, idx) => {
     if (q.section === section) html += buildQuestionHTML(idx, q);
   });
   container.innerHTML = html;
+  container.querySelectorAll('.exo-input:not([data-bound])').forEach(inp => {
+    inp.addEventListener('input', () => ansExoQ(+inp.dataset.idx, +inp.dataset.qi, inp.value));
+    inp.dataset.bound = '1';
+  });
+  container.querySelectorAll('.exo-table-input:not([data-bound])').forEach(inp => {
+    inp.addEventListener('input', () => ansExoCell(+inp.dataset.idx, +inp.dataset.r, +inp.dataset.c, inp.value));
+    inp.dataset.bound = '1';
+  });
   updateProgress();
   updateNavButtons();
 
@@ -502,31 +527,16 @@ function selMulti(idx, oi) {
   scheduleSave();
 }
 function ansSubj(idx, val) { userAnswers[idx] = val; scheduleSave(); }
-
-/* === GLISSE-DEPOZE (DND) handlers === */
-let draggedSingle = null;
-function dragStartSingle(ev, idx, ci) {
-  if (ev.target.classList.contains('placed')) return;
-  draggedSingle = { idx, ci, text: ev.target.getAttribute('data-text') };
+function ansExoQ(idx, qi, val) {
+  if (!userAnswers[idx] || typeof userAnswers[idx] !== 'object') userAnswers[idx] = {};
+  userAnswers[idx]['q' + qi] = val;
+  scheduleSave();
 }
-function dragOverSingle(ev) { ev.preventDefault(); if (ev.currentTarget) ev.currentTarget.classList.add('over'); }
-function dropSingle(ev, idx) {
-  ev.preventDefault();
-  const slot = document.getElementById(`dnd-slot-${idx}`);
-  if (!slot) return;
-  slot.classList.remove('over');
-  if (!draggedSingle || draggedSingle.idx !== idx) return;
-  if (userAnswers[idx]) {
-    document.querySelectorAll(`#dnd-pool-${idx} .dnd-chip`).forEach(c => {
-      if (c.getAttribute('data-text') === userAnswers[idx]) { c.classList.remove('placed'); c.draggable = true; }
-    });
-  }
-  userAnswers[idx] = draggedSingle.text || '';
-  slot.textContent = userAnswers[idx] || 'D\u00e9posez la description ici';
-  slot.classList.add('filled');
-  const chipEl = document.getElementById(`dnd-chip-${idx}-${draggedSingle.ci}`);
-  if (chipEl) { chipEl.classList.add('placed'); chipEl.draggable = false; }
-  draggedSingle = null;
+function ansExoCell(idx, r, c, val) {
+  if (!userAnswers[idx] || typeof userAnswers[idx] !== 'object') userAnswers[idx] = {};
+  if (!Array.isArray(userAnswers[idx].rows)) userAnswers[idx].rows = [];
+  if (!userAnswers[idx].rows[r]) userAnswers[idx].rows[r] = [];
+  userAnswers[idx].rows[r][c] = val;
   scheduleSave();
 }
 
@@ -564,6 +574,15 @@ function showSummary() {
     const a = userAnswers[i];
     let t = '';
     if (q.type === 'multi') t = Array.isArray(a) && a.length > 0 ? a.join(', ') : '';
+    else if (q.type === 'exo' && a && typeof a === 'object') {
+      const parts = [];
+      if (a.qs) parts.push('questions r\u00e9pondues');
+      if (a.rows) {
+        const filled = a.rows.filter(r => r && r.some(v => v && String(v).trim())).length;
+        parts.push(filled + ' ligne(s) tableau');
+      }
+      t = (parts.length ? parts.join(', ') : '');
+    }
     else t = (a && a.toString().trim()) || '';
     if (!t) { t = '(sans réponse)'; }
     h += `<div class="summary-q"><div class="sq-label">${q.section}.${q.sIdx + 1}</div><div class="${t === '(sans réponse)' ? 'sq-empty' : 'sq-answer'}">${t}</div></div>`;
@@ -710,27 +729,40 @@ for (let i = 0; i < MULTI.length; i++, qi++) {
     if (isExactMatch) score += MULTI_PTS; // Multi 1.25 pts chak
     detail.push(`B.${i+1}: ${userSelected.join(', ') || '(sans r\u00e9ponse)'} ${isExactMatch ? '[correct]' : '[incorrect]'}`);
   }
-  qi += DEF.length; // DEF (définir/expliquer) corrigées manuellement
-  for (let i = 0; i < DND.length; i++, qi++) {
-    const userAns = userAnswers[qi] || null;
-    const userHash = userAns ? await sha256(userAns) : null;
-    const correct = userHash === DND[i].hash;
-    if (correct) score += 2; // Glisser 2 pts chak
-    detail.push(`D (${DND[i].target}): ${userAns || '(sans réponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
-  }
 
   return { score, detail };
 }
 
 function collectSubjective() {
   let answers = [];
-  let qi = QCM.length + MULTI.length + DEF.length + DND.length;
   DEF.forEach((item, i) => {
     const val = userAnswers[QCM.length + MULTI.length + i] || '';
     answers.push(`C.${i+1} (${item.pts} pts) ${item.q}\n${val || '(sans réponse)'}`);
   });
+  EXOS.forEach((item, i) => {
+    const idx = QCM.length + MULTI.length + DEF.length + i;
+    const data = userAnswers[idx] || {};
+    let out = `D.${i+1} (15 pts) ${item.title}\n`;
+    if (item.qs) {
+      out += `\nQuestions :\n`;
+      item.qs.forEach((qtxt, qi) => {
+        const v = data['q' + qi] || '';
+        out += ` ${qi+1}. ${qtxt}\n    R\u00e9ponse : ${v || '(sans réponse)'}\n`;
+      });
+    }
+    const rows = data.rows || [];
+    if (rows.length) {
+      out += `\nTableau (${item.tableCols.join(' | ')})\n`;
+      rows.forEach((r, ri) => {
+        out += ` ${ri+1}. ${r.map(c => c || '\u2014').join(' | ')}\n`;
+      });
+    } else {
+      out += `\nTableau : (vide)\n`;
+    }
+    answers.push(out);
+  });
   SUBJ.forEach((item, i) => {
-    const val = userAnswers[qi + i] || '';
+    const val = userAnswers[QCM.length + MULTI.length + DEF.length + EXOS.length + i] || '';
     answers.push(`E.${i+1} (${item.pts} pts) ${item.q}\n${val || '(sans réponse)'}`);
   });
   return answers;
@@ -787,8 +819,8 @@ async function submitExam(autoSubmit) {
 function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
   lastEmailSubject = `Résultats Réseau 2 — ${studentName}`;
 
-  const autoTotal = QUESTIONS.reduce((s, q) => (q.type === 'subj' || q.type === 'def') ? s : s + (q.pts || 0), 0);
-  const subjTotal = QUESTIONS.filter(q => q.type === 'subj' || q.type === 'def').reduce((s, q) => s + (q.pts || 0), 0);
+  const autoTotal = QUESTIONS.reduce((s, q) => (q.type === 'subj' || q.type === 'def' || q.type === 'exo') ? s : s + (q.pts || 0), 0);
+  const subjTotal = QUESTIONS.filter(q => q.type === 'subj' || q.type === 'def' || q.type === 'exo').reduce((s, q) => s + (q.pts || 0), 0) + EXOS_TOTAL;
   const grandTotal = autoTotal + subjTotal;
 
   let body = '';
