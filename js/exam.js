@@ -934,25 +934,27 @@ function buildEmailHtml(objectiveScore, detail, subjectiveAnswers, autoTotal, su
     }
     if (item.table4) {
       h += `<p style="margin:8px 0 6px;color:#4A4A4A">${escHtml(item.table4.note)}</p>`;
-      h += `<table style="border-collapse:collapse;margin:0 auto;table-layout:fixed">`;
+      h += `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0"><tr><td align="center">`;
+      h += `<table style="border-collapse:collapse;table-layout:fixed">`;
       h += `<tr>${item.table4.cols.map(c => `<th style="${thCss}width:${Math.floor(100 / item.table4.cols.length)}%">${escHtml(c)}</th>`).join('')}</tr>`;
       for (let r = 0; r < item.table4.rows; r++) {
         const row = rows[r] || [];
         h += `<tr>${item.table4.cols.map((_, c) => `<td style="${tdCss}min-width:150px;font-family:Consolas,monospace">${row[c] ? escHtml(row[c]) : '—'}</td>`).join('')}</tr>`;
       }
-      h += `</table>`;
+      h += `</table></td></tr></table>`;
     }
     if (item.vlsmRows && item.tableCols) {
       h += `<p style="margin:8px 0 6px;color:#4A4A4A">Complétez le tableau des sous-réseaux :</p>`;
-      h += `<table style="border-collapse:collapse;margin:0 auto">`;
+      h += `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0"><tr><td align="center">`;
+      h += `<table style="border-collapse:collapse">`;
       h += `<tr>${item.tableCols.map(c => `<th style="${thCss}">${escHtml(c)}</th>`).join('')}</tr>`;
       item.vlsmRows.forEach((lbl, r) => {
         const row = rows[r] || [];
         h += `<tr><td style="${tdCss}${lblCss}">${escHtml(lbl)}</td>`;
-        h += item.tableCols.slice(1).map((_, c) => `<td style="${tdCss}min-width:125px;font-family:Consolas,monospace">${row[c + 1] ? escHtml(row[c + 1]) : '—'}</td>`).join('');
+        h += item.tableCols.slice(1).map((_, c) => `<td style="${tdCss}min-width:95px;font-family:Consolas,monospace">${row[c + 1] ? escHtml(row[c + 1]) : '—'}</td>`).join('');
         h += `</tr>`;
       });
-      h += `</table>`;
+      h += `</table></td></tr></table>`;
     }
     h += `</div>`;
   });
