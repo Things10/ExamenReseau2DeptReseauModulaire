@@ -84,11 +84,11 @@ const EXOS_NOTE = "3 exercices propos\u00e9s, quel que soit l'exercice choisi, i
 const EXOS_TOTAL = 15;
 const EXOS = [
   {
-    title: "Exercice 1 \u2014 CIDR",
+    title: "Exercice 1",
     type: 'nums',
     intro: "Une entreprise dispose du r\u00e9seau 10.0.0.0/8. Elle souhaite le diviser de fa\u00e7on \u00e0 obtenir au minimum 100 sous-r\u00e9seaux, chacun devant pouvoir contenir au minimum 500 h\u00f4tes.",
     qs: [
-      "1- Quel est le masque le plus adapt\u00e9 (CIDR) ?",
+      "1- Quel est le masque le plus adapt\u00e9 ?",
       "1- Quel est ce masque en d\u00e9cimal ?",
       "2- Combien de sous-r\u00e9seaux exactement ce masque permet-il de cr\u00e9er ?",
       "3- Combien d'h\u00f4tes utilisables par sous-r\u00e9seau ?",
@@ -102,11 +102,11 @@ const EXOS = [
     }
   },
   {
-    title: "Exercice 2 \u2014 CIDR",
+    title: "Exercice 2",
     type: 'nums',
     intro: "Soit l'adresse IP attribu\u00e9e \u00e0 un h\u00f4te : 172.16.19.41/21",
     qs: [
-      "1- Quel est le masque r\u00e9seau de cette adresse (CIDR) ?",
+      "1- Quel est le masque r\u00e9seau de cette adresse ?",
       "1- Quel est ce masque en d\u00e9cimal ?",
       "2- Combien de bits ont \u00e9t\u00e9 r\u00e9serv\u00e9s pour le d\u00e9coupage en sous-r\u00e9seaux, relativement \u00e0 la d\u00e9finition historique de la classe ?",
       "3- Combien de sous-r\u00e9seaux peuvent \u00eatre adress\u00e9s gr\u00e2ce \u00e0 ces bits ?",
@@ -116,9 +116,9 @@ const EXOS = [
     ]
   },
   {
-    title: "Exercice 3 \u2014 VLSM",
+    title: "Exercice 3",
     type: 'vlsm',
-    intro: "Etudiez le plan d'adressage VLSM pr\u00e9sent\u00e9 sur les sch\u00e9mas ci-dessus et compl\u00e9tez le tableau des sous-r\u00e9seaux.",
+    intro: "Etudiez le plan d'adressage pr\u00e9sent\u00e9 sur les sch\u00e9mas ci-dessus et compl\u00e9tez le tableau des sous-r\u00e9seaux.",
     imgs: ["img/section4-exo3-vlsm1.png", "img/section4-exo3-vlsm2.png"],
     tableCols: ["Nom de r\u00e9seau", "Adresse r\u00e9seau", "Masque d\u00e9cimal", "Adresse d\u00e9but", "Adresse fin", "Adresse diffusion", "Nombre d'h\u00f4tes"],
     vlsmRows: ["Beni-Mellal", "Oued zem", "Khenifra", "Azillal", "Bejaad", "Khouribga", "Tadla", "Wan1", "Wan2", "Wan3"]
