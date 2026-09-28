@@ -786,6 +786,7 @@ function collectSubjective() {
    SOUMISSION DE L'EXAMEN
    ============================================================ */
 let lastEmailBody = '';
+let lastEmailHtml = '';
 let lastEmailSubject = '';
 
 /* Tcheke si etidyan an reponn omwen 1 kesyon -- examen_reseau_v2 */
@@ -873,6 +874,99 @@ function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
   body += ` Document généré automatiquement — Examen Réseau 2\n`;
 
   lastEmailBody = body;
+  lastEmailHtml = buildEmailHtml(objectiveScore, detail, subjectiveAnswers, autoTotal, subjTotal, grandTotal, seuil);
+}
+
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/* Vèsyon HTML imel la — tablo yo (Q4 + VLSM) pouse IP yo nan selil yo menm jan etidyan korije yo tap ranpli */
+function buildEmailHtml(objectiveScore, detail, subjectiveAnswers, autoTotal, subjTotal, grandTotal, seuil) {
+  const thCss = 'background:#1D9E75;color:#fff;padding:7px 10px;border:1px solid #0E7D5C;font-size:12px;text-align:center;';
+  const tdCss = 'padding:7px 10px;border:1px solid #C9E8DC;font-size:13px;text-align:center;';
+  const lblCss = 'background:#E4F5EF;font-weight:bold;color:#06231A;white-space:nowrap;';
+
+  let h = '';
+  h += `<div style="font-family:Arial,Helvetica,sans-serif;max-width:760px;margin:0 auto;color:#1C1A17;font-size:14px">`;
+  h += `<div style="background:linear-gradient(135deg,#5DCAA5,#1D9E75);color:#fff;padding:16px 20px;border-radius:10px 10px 0 0;text-align:center"><h2 style="margin:0;font-size:20px">RÉSEAU 2 — RÉSULTATS D'EXAMEN</h2></div>`;
+  h += `<div style="border:1px solid #E0E0E0;border-top:none;padding:20px 24px;background:#ffffff;border-radius:0 0 10px 10px">`;
+
+  h += `<p style="margin:0 0 4px"><strong>Étudiant :</strong> ${escHtml(studentName)}</p>`;
+  h += `<p style="margin:0 0 14px"><strong>Note automatique :</strong> ${objectiveScore} / ${autoTotal}</p>`;
+
+  h += `<h3 style="margin:16px 0 8px;color:#06231A;font-size:15px">Détail des réponses automatiques</h3>`;
+  h += `<table style="border-collapse:collapse;width:100%">`;
+  detail.forEach(line => {
+    const m = line.match(/^([A-Z]\.\d+):\s*(.*?)\s*(\[correct\]|\[incorrect\])?$/);
+    const label = m ? m[1] : line;
+    const ans = m ? m[2] : '';
+    const mark = m && m[3] === '[correct]' ? '&#10003;' : (m && m[3] === '[incorrect]' ? '&#10007;' : '');
+    h += `<tr>`;
+    h += `<td style="${tdCss}font-family:inherit;font-weight:bold;white-space:nowrap;width:60px">${escHtml(label)}</td>`;
+    h += `<td style="${tdCss}font-family:inherit;text-align:left">${ans ? escHtml(ans) : '<em style="color:#888">(sans réponse)</em>'}</td>`;
+    h += `<td style="${tdCss}font-family:inherit;width:40px">${mark}</td>`;
+    h += `</tr>`;
+  });
+  h += `</table>`;
+
+  h += `<h3 style="margin:18px 0 8px;color:#06231A;font-size:15px">Section C — Définir et expliquer (${DEF.reduce((s, it) => s + it.pts, 0)} pts)</h3>`;
+  DEF.forEach((item, i) => {
+    const val = userAnswers[QCM.length + MULTI.length + i] || '';
+    h += `<p style="margin:0 0 8px"><strong>C.${i + 1}</strong> — ${escHtml(item.q)}<br>`;
+    h += `<span style="background:#F3FAF7;border-left:3px solid #5DCAA5;padding:4px 8px;display:block;margin-top:4px;color:#333">${val ? escHtml(val) : '<em style="color:#888">(sans réponse)</em>'}</span></p>`;
+  });
+
+  h += `<h3 style="margin:18px 0 8px;color:#06231A;font-size:15px">Section D — Exercices (${EXOS_TOTAL} pts)</h3>`;
+  EXOS.forEach((item, i) => {
+    const idx = QCM.length + MULTI.length + DEF.length + i;
+    const data = userAnswers[idx] || {};
+    const rows = data.rows || [];
+    h += `<div style="background:#FAFCFB;border:1px solid #E0E0E0;border-radius:8px;padding:12px 14px;margin-bottom:14px">`;
+    h += `<p style="margin:0 0 6px"><strong>D.${i + 1} — ${escHtml(item.title)}</strong></p>`;
+    if (item.intro) h += `<p style="margin:0 0 8px;color:#4A4A4A">${escHtml(item.intro)}</p>`;
+    if (item.qs) {
+      item.qs.forEach((qtxt, qi) => {
+        const v = data['q' + qi] || '';
+        h += `<p style="margin:0 0 6px">${escHtml(qtxt)}<br>`;
+        h += `<span style="font-family:Consolas,monospace;background:#fff;border:1px solid #C9E8DC;border-radius:4px;padding:2px 6px;display:inline-block;margin-top:2px">${v ? escHtml(v) : '<em style="color:#888;font-family:inherit">(sans réponse)</em>'}</span></p>`;
+      });
+    }
+    if (item.table4) {
+      h += `<p style="margin:8px 0 6px;color:#4A4A4A">${escHtml(item.table4.note)}</p>`;
+      h += `<table style="border-collapse:collapse;margin:0 auto;table-layout:fixed">`;
+      h += `<tr>${item.table4.cols.map(c => `<th style="${thCss}width:${Math.floor(100 / item.table4.cols.length)}%">${escHtml(c)}</th>`).join('')}</tr>`;
+      for (let r = 0; r < item.table4.rows; r++) {
+        const row = rows[r] || [];
+        h += `<tr>${item.table4.cols.map((_, c) => `<td style="${tdCss}min-width:150px;font-family:Consolas,monospace">${row[c] ? escHtml(row[c]) : '—'}</td>`).join('')}</tr>`;
+      }
+      h += `</table>`;
+    }
+    if (item.vlsmRows && item.tableCols) {
+      h += `<p style="margin:8px 0 6px;color:#4A4A4A">Complétez le tableau des sous-réseaux :</p>`;
+      h += `<table style="border-collapse:collapse;margin:0 auto">`;
+      h += `<tr>${item.tableCols.map(c => `<th style="${thCss}">${escHtml(c)}</th>`).join('')}</tr>`;
+      item.vlsmRows.forEach((lbl, r) => {
+        const row = rows[r] || [];
+        h += `<tr><td style="${tdCss}${lblCss}">${escHtml(lbl)}</td>`;
+        h += item.tableCols.slice(1).map((_, c) => `<td style="${tdCss}min-width:125px;font-family:Consolas,monospace">${row[c + 1] ? escHtml(row[c + 1]) : '—'}</td>`).join('');
+        h += `</tr>`;
+      });
+      h += `</table>`;
+    }
+    h += `</div>`;
+  });
+
+  h += `<div style="background:#F3FAF7;border:1px solid #C9E8DC;border-radius:8px;padding:12px 16px;margin-top:14px">`;
+  h += `<p style="margin:0 0 4px"><strong>Note automatique</strong> : ${objectiveScore} / ${autoTotal}</p>`;
+  h += `<p style="margin:0 0 4px"><strong>Note manuelle (subjectif)</strong> : ____ / ${subjTotal}</p>`;
+  h += `<p style="margin:0 0 4px"><strong>TOTAL</strong> : ____ / ${grandTotal}</p>`;
+  h += `<p style="margin:0"><strong>Seuil de réussite</strong> : ${seuil} / ${grandTotal}</p>`;
+  h += `</div>`;
+
+  h += `<p style="margin:14px 0 0;color:#888;font-size:12px;text-align:center">Document généré automatiquement — Examen Réseau 2</p>`;
+  h += `</div></div>`;
+  return h;
 }
 
 function setupSubmitButtons(objectiveScore, detail, subjectiveAnswers) {
@@ -908,6 +1002,7 @@ async function sendEmail(objectiveScore, detail, subjectiveAnswers) {
         detail: detailText,
         subjective: subjText,
         email_body: lastEmailBody,
+        html_body: lastEmailHtml,
       },
       EMAILJS_PUBLIC_KEY
     );
