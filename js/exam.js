@@ -80,11 +80,12 @@ const DEF = [
    3 exercices proposés, un est obligatoire
    Chaque exercice : réponses courtes + tableau 7 colonnes
    ============================================================ */
-const EXOS_NOTE = "3 exercices propos\u00e9s, un est obligatoire (15 pts)";
+const EXOS_NOTE = "3 exercices propos\u00e9s, quel que soit l'exercice choisi, il est sur 15 points";
 const EXOS_TOTAL = 15;
 const EXOS = [
   {
     title: "Exercice 1 \u2014 CIDR",
+    type: 'nums',
     intro: "Une entreprise dispose du r\u00e9seau 10.0.0.0/8. Elle souhaite le diviser de fa\u00e7on \u00e0 obtenir au minimum 100 sous-r\u00e9seaux, chacun devant pouvoir contenir au minimum 500 h\u00f4tes.",
     qs: [
       "1- Quel est le masque le plus adapt\u00e9 (CIDR) ?",
@@ -94,33 +95,33 @@ const EXOS = [
       "5- \u00c0 quel sous-r\u00e9seau appartient l'adresse 10.45.130.200 ?",
       "5- Quelle est l'adresse de broadcast de ce sous-r\u00e9seau ?"
     ],
-    tableCols: ["N\u00b0", "Adresse r\u00e9seau", "Masque CIDR", "Masque d\u00e9cimal", "1re IP utilisable", "Derni\u00e8re IP", "Broadcast"],
-    noteTable: "Question 4 : donner les 4 premiers sous-r\u00e9seaux (adresse r\u00e9seau, plage d'h\u00f4tes, broadcast)."
+    table4: {
+      note: "4- Donner les 4 premiers sous-r\u00e9seaux (adresse r\u00e9seau, plage d'h\u00f4tes, broadcast) :",
+      cols: ["Adresse r\u00e9seau", "Plage d'h\u00f4tes", "Broadcast"],
+      rows: 4
+    }
   },
   {
-    title: "Exercice 4 \u2014 CIDR",
+    title: "Exercice 2 \u2014 CIDR",
+    type: 'nums',
     intro: "Soit l'adresse IP attribu\u00e9e \u00e0 un h\u00f4te : 172.16.19.41/21",
     qs: [
       "1- Quel est le masque r\u00e9seau de cette adresse (CIDR) ?",
       "1- Quel est ce masque en d\u00e9cimal ?",
-      "2- Combien de bits ont \u00e9t\u00e9 r\u00e9serv\u00e9s pour le d\u00e9coupage en sous-r\u00e9seaux ?",
+      "2- Combien de bits ont \u00e9t\u00e9 r\u00e9serv\u00e9s pour le d\u00e9coupage en sous-r\u00e9seaux, relativement \u00e0 la d\u00e9finition historique de la classe ?",
       "3- Combien de sous-r\u00e9seaux peuvent \u00eatre adress\u00e9s gr\u00e2ce \u00e0 ces bits ?",
       "4- Combien d'h\u00f4tes peut contenir chaque sous-r\u00e9seau ?",
       "5- Quelle est l'adresse du sous-r\u00e9seau de l'exemple ?",
       "6- Quelle est l'adresse de broadcast de ce sous-r\u00e9seau ?"
-    ],
-    tableCols: ["N\u00b0", "Adresse r\u00e9seau", "Masque CIDR", "Masque d\u00e9cimal", "1re IP utilisable", "Derni\u00e8re IP", "Broadcast"],
-    noteTable: "D\u00e9taillez vos calculs dans le tableau ci-dessous."
+    ]
   },
   {
     title: "Exercice 3 \u2014 VLSM",
-    intro: "Etudiez le plan d'adressage VLSM pr\u00e9sent\u00e9 sur les sch\u00e9mas ci-dessous et compl\u00e9tez les tableaux de sous-r\u00e9seaux.",
+    type: 'vlsm',
+    intro: "Etudiez le plan d'adressage VLSM pr\u00e9sent\u00e9 sur les sch\u00e9mas ci-dessous et compl\u00e9tez le tableau des sous-r\u00e9seaux.",
     imgs: ["img/section4-exo3-vlsm1.png", "img/section4-exo3-vlsm2.png"],
-    qs: [
-      "Indiquez votre plan d'adressage VLSM (masques, sous-r\u00e9seaux, plages d'h\u00f4tes, broadcast) :"
-    ],
-    tableCols: ["N\u00b0", "Adresse r\u00e9seau", "Masque CIDR", "Masque d\u00e9cimal", "1re IP utilisable", "Derni\u00e8re IP", "Broadcast"],
-    noteTable: "Un tableau (7 colonnes) par sous-r\u00e9seau demand\u00e9."
+    tableCols: ["Nom de r\u00e9seau", "Adresse r\u00e9seau", "Masque d\u00e9cimal", "Adresse d\u00e9but", "Adresse fin", "Adresse diffusion", "Nombre d'h\u00f4tes"],
+    vlsmRows: ["Beni-Mellal", "Oued zem", "Khenifra", "Azillal", "Bejaad", "Khouribga", "Tadla", "Wan1", "Wan2", "Wan3"]
   }
 ];
 
@@ -374,7 +375,7 @@ function updateNavButtons() {
 function buildQuestionHTML(idx, q) {
   let html = `<div class="q-card">`;
   html += `<div class="q-num">${q.section}.${q.sIdx + 1}</div>`;
-  html += `<div class="q-text">${q.q} <span class="q-points">${q.pts || 0} pts</span></div>`;
+  html += `<div class="q-text">${q.q || q.title || ''}${q.pts && q.type !== 'exo' ? ` <span class="q-points">${q.pts} pts</span>` : ''}</div>`;
   if (q.img === 'schema-reseau') {
     html += `<div style="margin-bottom:16px;text-align:center">${NETWORK_DIAGRAM_SVG}</div>`;
   } else if (q.img === 'ipv6') {
@@ -411,6 +412,9 @@ function buildQuestionHTML(idx, q) {
     html += `<textarea class="subj" id="q-${idx}" oninput="ansSubj(${idx},this.value)" placeholder="Votre r\u00e9ponse...">${userAnswers[idx] || ''}</textarea>`;
   } else if (q.type === 'exo') {
     const data = (userAnswers[idx] && typeof userAnswers[idx] === 'object') ? userAnswers[idx] : {};
+    if (q.intro) {
+      html += `<div class="exo-intro">${q.intro}</div>`;
+    }
     if (q.qs) {
       html += `<div class="exo-qs">`;
       q.qs.forEach((qtxt, qi) => {
@@ -419,8 +423,31 @@ function buildQuestionHTML(idx, q) {
       });
       html += `</div>`;
     }
-    if (q.tableCols) {
-      html += `<p class="exo-note-table">${q.noteTable || ''}</p>`;
+    if (q.table4) {
+      html += `<div class="exo-table-wrap">`;
+      html += `<p class="exo-note-table">${q.table4.note}</p>`;
+      html += `<table class="exo-table" id="exo-table-${idx}">`;
+      html += `<thead><tr>`;
+      q.table4.cols.forEach((col, c) => {
+        html += `<th>${col}</th>`;
+      });
+      html += `</tr></thead>`;
+      html += `<tbody>`;
+      for (let r = 0; r < q.table4.rows; r++) {
+        html += `<tr>`;
+        for (let c = 0; c < q.table4.cols.length; c++) {
+          const val = (data.rows && data.rows[r] && data.rows[r][c]) || '';
+          html += `<td class="exo-cell"><input class="exo-table-input" data-idx="${idx}" data-r="${r}" data-c="${c}" value="${val.replace(/"/g, '&quot;')}" autocomplete="off"></td>`;
+        }
+        html += `</tr>`;
+      }
+      html += `</tbody>`;
+      html += `</table>`;
+      html += `</div>`;
+    }
+    if (q.tableCols && q.vlsmRows) {
+      html += `<div class="exo-table-wrap">`;
+      html += `<p class="exo-note-table">Compl\u00e9tez le tableau des sous-r\u00e9seaux :</p>`;
       html += `<table class="exo-table" id="exo-table-${idx}">`;
       html += `<thead><tr>`;
       q.tableCols.forEach((col, c) => {
@@ -428,20 +455,18 @@ function buildQuestionHTML(idx, q) {
       });
       html += `</tr></thead>`;
       html += `<tbody>`;
-      for (let r = 0; r < 10; r++) {
+      q.vlsmRows.forEach((lbl, r) => {
         html += `<tr>`;
-        for (let c = 0; c < q.tableCols.length; c++) {
+        html += `<td class="exo-cell exo-lbl">${lbl}</td>`;
+        for (let c = 1; c < q.tableCols.length; c++) {
           const val = (data.rows && data.rows[r] && data.rows[r][c]) || '';
-          if (c === 0) {
-            html += `<td class="exo-cell exo-num">${r + 1}</td>`;
-          } else {
-            html += `<td class="exo-cell"><input class="exo-table-input" data-idx="${idx}" data-r="${r}" data-c="${c}" value="${val.replace(/"/g, '&quot;')}" autocomplete="off"></td>`;
-          }
+          html += `<td class="exo-cell"><input class="exo-table-input" data-idx="${idx}" data-r="${r}" data-c="${c}" value="${val.replace(/"/g, '&quot;')}" autocomplete="off"></td>`;
         }
         html += `</tr>`;
-      }
+      });
       html += `</tbody>`;
       html += `</table>`;
+      html += `</div>`;
     }
   }
 
@@ -576,7 +601,8 @@ function showSummary() {
     if (q.type === 'multi') t = Array.isArray(a) && a.length > 0 ? a.join(', ') : '';
     else if (q.type === 'exo' && a && typeof a === 'object') {
       const parts = [];
-      if (a.qs) parts.push('questions r\u00e9pondues');
+      const qCount = Object.keys(a).filter(k => /^q\d+$/.test(k) && String(a[k]).trim()).length;
+      if (qCount) parts.push(qCount + ' r\u00e9ponse(s)');
       if (a.rows) {
         const filled = a.rows.filter(r => r && r.some(v => v && String(v).trim())).length;
         parts.push(filled + ' ligne(s) tableau');
@@ -743,6 +769,7 @@ function collectSubjective() {
     const idx = QCM.length + MULTI.length + DEF.length + i;
     const data = userAnswers[idx] || {};
     let out = `D.${i+1} (15 pts) ${item.title}\n`;
+    if (item.intro) out += ` ${item.intro}\n`;
     if (item.qs) {
       out += `\nQuestions :\n`;
       item.qs.forEach((qtxt, qi) => {
@@ -751,13 +778,19 @@ function collectSubjective() {
       });
     }
     const rows = data.rows || [];
-    if (rows.length) {
-      out += `\nTableau (${item.tableCols.join(' | ')})\n`;
-      rows.forEach((r, ri) => {
-        out += ` ${ri+1}. ${r.map(c => c || '\u2014').join(' | ')}\n`;
+    if (item.table4) {
+      out += `\n${item.table4.note}\n`;
+      out += ` ${item.table4.cols.join(' | ')}\n`;
+      for (let r = 0; r < item.table4.rows; r++) {
+        const row = rows[r] || [];
+        out += ` ${r+1}. ${item.table4.cols.map((_, c) => row[c] || '\u2014').join(' | ')}\n`;
+      }
+    } else if (item.vlsmRows && item.tableCols) {
+      out += `\nTableau VLSM (${item.tableCols.join(' | ')})\n`;
+      item.vlsmRows.forEach((lbl, r) => {
+        const row = rows[r] || [];
+        out += ` ${lbl}: ${item.tableCols.slice(1).map((_, c) => row[c+1] || '\u2014').join(' | ')}\n`;
       });
-    } else {
-      out += `\nTableau : (vide)\n`;
     }
     answers.push(out);
   });
@@ -822,6 +855,7 @@ function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
   const autoTotal = QUESTIONS.reduce((s, q) => (q.type === 'subj' || q.type === 'def' || q.type === 'exo') ? s : s + (q.pts || 0), 0);
   const subjTotal = QUESTIONS.filter(q => q.type === 'subj' || q.type === 'def' || q.type === 'exo').reduce((s, q) => s + (q.pts || 0), 0) + EXOS_TOTAL;
   const grandTotal = autoTotal + subjTotal;
+  const seuil = 62;
 
   let body = '';
   body += `╔══════════════════════════════════════════════════════════╗\n`;
@@ -853,7 +887,7 @@ function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
   body += ` Note manuelle (subjectif) : ____ / ${subjTotal}\n`;
   body += ` ───────────────────────────\n`;
   body += ` TOTAL                   : ____ / ${grandTotal}\n`;
-  body += ` Seuil de réussite        : 57 / 88\n\n`;
+  body += ` Seuil de r\u00e9ussite        : ${seuil} / ${grandTotal}\n\n`;
   body += `${'─'.repeat(60)}\n`;
   body += ` Document généré automatiquement — Examen Réseau 2\n`;
 
