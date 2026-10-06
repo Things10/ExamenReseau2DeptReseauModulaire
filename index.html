@@ -111,6 +111,11 @@
 <div id="screen-done">
   <h1>Examen soumis</h1>
   <p id="done-msg">Vos réponses ont été enregistrées dans la base de données et transmises à l'enseignant.</p>
+  <div id="score-fail" style="display:none;background:#FFF3CD;border:1px solid #FFC107;border-radius:10px;padding:14px 16px;margin:10px 0 14px;text-align:center">
+    <strong style="color:#8A6D1C">La note automatique n'a pas pu être récupérée.</strong>
+    <p id="score-retry-msg" style="margin:6px 0 10px;color:#6b5412">Vérifiez votre connexion puis réessayez.</p>
+    <button class="resend-btn" id="score-retry-btn" onclick="retryScore()">Réessayer</button>
+  </div>
   <button class="resend-btn" id="resend-btn">Ouvrir l'e-mail de résultats</button>
   <button class="copy-btn" id="copy-btn">Copier les résultats</button>
   <div id="copy-feedback"></div>
@@ -127,6 +132,6 @@
   </div>
 </div>
 
-<script src="js/exam.js?v=20261004"></script>
+<script src="js/exam.js?v=20261005"></script>
 </body>
 </html>

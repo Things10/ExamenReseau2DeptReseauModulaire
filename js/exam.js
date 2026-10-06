@@ -16,14 +16,9 @@ let saveTimer = null;
 let isSaving = false;
 
 /* ============================================================
-   HACHAGE SHA-256 (les bonnes réponses ne sont jamais en clair)
+   CORRECTION QCM / MULTI : kalkilée SERVER-side (api/grade.php)
+   Bon réponses yo pa janm voyé bay navigateur la ankò.
    ============================================================ */
-async function sha256(text) {
-  const normalized = text.trim().toLowerCase();
-  const enc = new TextEncoder().encode(normalized);
-  const buf = await crypto.subtle.digest('SHA-256', enc);
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
 
 /* ============================================================
    SECTION 1 — Choisir la bonne réponse (8 x 1.25 pts = 10 pts)
@@ -39,12 +34,7 @@ const QCM = [
   { q: "Soit cette topologie ci-dessous. Le lien entre R2 et R3 a été annulé. Quelle route principale doit-on emprunter comme route de secours pour atteindre le réseau Bureautique ?", opts: ["Ip route 192.168.10.0 255.255.255.0 10.1.1.6", "Ip route 192.168.20.0 255.255.255.0 10.1.1.0", "Ip route 192.168.30.0 255.255.255.0 10.1.1.6", "Ip route 192.168.30.0 255.255.255.0 10.1.1.2", "Ip route 192.168.30.0 255.255.255.0 10.1.1.10 5"], img: "q7-topologie", hash: "" },
   { q: "Parmi toutes ces commandes, laquelle est utilisée pour afficher un résumé des interfaces actives en OSPF ?", opts: ["router ospf <ID-processus>", "network <réseau> <wildcard> area <n>", "show ip ospf neighbor", "show ip ospf interface brief", "passive-interface <intf>"], hash: "" },
 ];
-const QCM_ANSWERS = [
-  "200.4.126.3", "/23", "Loopback", "/27", "62",
-  "Ip route 192.168.10.0 255.255.255.0 10.0.0.1",
-  "Ip route 192.168.30.0 255.255.255.0 10.1.1.10 5",
-  "show ip ospf interface brief"
-];
+/* Repons QCM yo pa nan kòd sa — yo rete sou serveur a (api/exam_answers.php) */
 
 /* ============================================================
    SECTION C — Définir et expliquer avec vos propres mots
@@ -133,44 +123,36 @@ const MULTI_PTS = 1.25;
 const MULTI = [
   {
     q: "Quelles sont les caractéristiques d'une route flottante (floating static route) ?",
-    opts: ["Elle a une distance administrative plus élevée que la route principale", "Elle prend effet uniquement quand la route principale est indisponible", "Elle est apprise via un protocole de routage dynamique", "Elle est utilisée comme route de secours", "Elle a toujours une distance administrative de 1"],
-    ans: ["Elle a une distance administrative plus élevée que la route principale", "Elle prend effet uniquement quand la route principale est indisponible", "Elle est utilisée comme route de secours"]
+    opts: ["Elle a une distance administrative plus élevée que la route principale", "Elle prend effet uniquement quand la route principale est indisponible", "Elle est apprise via un protocole de routage dynamique", "Elle est utilisée comme route de secours", "Elle a toujours une distance administrative de 1"]
   },
   {
     q: "Quels éléments peut-on configurer sur un serveur DHCP d'un routeur Cisco ?",
-    opts: ["L'adresse IP de la passerelle par défaut", "Le masque de sous-réseau", "L'adresse du serveur DNS", "Le protocole de routage à utiliser", "La durée du bail (lease time)"],
-    ans: ["L'adresse IP de la passerelle par défaut", "Le masque de sous-réseau", "L'adresse du serveur DNS", "La durée du bail (lease time)"]
+    opts: ["L'adresse IP de la passerelle par défaut", "Le masque de sous-réseau", "L'adresse du serveur DNS", "Le protocole de routage à utiliser", "La durée du bail (lease time)"]
   },
   {
     q: "Parmi ces ports, lesquels sont associés à des protocoles utilisant TCP ?",
-    opts: ["Port 80 (HTTP)", "Port 443 (HTTPS)", "Port 69 (TFTP)", "Port 22 (SSH)"],
-    ans: ["Port 80 (HTTP)", "Port 443 (HTTPS)", "Port 22 (SSH)"]
+    opts: ["Port 80 (HTTP)", "Port 443 (HTTPS)", "Port 69 (TFTP)", "Port 22 (SSH)"]
   },
   {
     q: "Parmi les caractéristiques suivantes, lesquelles s'appliquent à OSPF ?",
-    opts: ["Protocole à état de lien (link-state)", "Utilise l'algorithme de Dijkstra (SPF)", "Protocole propriétaire Cisco", "Élit un routeur désigné (DR) sur les réseaux multi-accès"],
-    ans: ["Protocole à état de lien (link-state)", "Utilise l'algorithme de Dijkstra (SPF)", "Élit un routeur désigné (DR) sur les réseaux multi-accès"]
+    opts: ["Protocole à état de lien (link-state)", "Utilise l'algorithme de Dijkstra (SPF)", "Protocole propriétaire Cisco", "Élit un routeur désigné (DR) sur les réseaux multi-accès"]
   },
   {
     q: "Parmi les fonctions suivantes, lesquelles sont propres à un switch de niveau 3 (et non à un switch L2 classique) ?",
-    opts: ["Apprentissage des adresses MAC", "Création de SVI (Switch Virtual Interface)", "Routage inter-VLAN sans routeur externe", "Table de routage IP"],
-    ans: ["Création de SVI (Switch Virtual Interface)", "Routage inter-VLAN sans routeur externe", "Table de routage IP"]
+    opts: ["Apprentissage des adresses MAC", "Création de SVI (Switch Virtual Interface)", "Routage inter-VLAN sans routeur externe", "Table de routage IP"]
   },
   {
     q: "Concernant le « router on a stick », quelles affirmations sont exactes ?",
-    opts: ["Il nécessite une sous-interface par VLAN sur le routeur", "Il nécessite un lien trunk entre le switch et le routeur", "Il remplace l'utilisation du protocole 802.1Q", "Il permet le routage inter-VLAN avec une seule interface physique"],
-    ans: ["Il nécessite une sous-interface par VLAN sur le routeur", "Il nécessite un lien trunk entre le switch et le routeur", "Il permet le routage inter-VLAN avec une seule interface physique"]
+    opts: ["Il nécessite une sous-interface par VLAN sur le routeur", "Il nécessite un lien trunk entre le switch et le routeur", "Il remplace l'utilisation du protocole 802.1Q", "Il permet le routage inter-VLAN avec une seule interface physique"]
   },
   {
     q: "Sur un switch multicouche (L3) avec routage inter-VLAN par SVI, quelles conditions sont nécessaires pour que le trafic soit correctement routé entre VLAN 10 et VLAN 30 ?",
-    opts: ["La commande globale « ip routing » doit être activée", "Les SVI (interface vlan 10 et interface vlan 30) doivent être en état « up/up »", "Un port physique doit être configuré en mode trunk vers chaque hôte", "Les VLAN 10 et 30 doivent exister et avoir au moins un port actif associé"],
-    ans: ["La commande globale « ip routing » doit être activée", "Les SVI (interface vlan 10 et interface vlan 30) doivent être en état « up/up »", "Les VLAN 10 et 30 doivent exister et avoir au moins un port actif associé"]
+    opts: ["La commande globale « ip routing » doit être activée", "Les SVI (interface vlan 10 et interface vlan 30) doivent être en état « up/up »", "Un port physique doit être configuré en mode trunk vers chaque hôte", "Les VLAN 10 et 30 doivent exister et avoir au moins un port actif associé"]
   },
   {
     q: "En comparant OSPF et EIGRP, quelles affirmations sont vraies ?",
-    opts: ["OSPF calcule le coût selon la bande passante de l'interface, EIGRP utilise une métrique composite (bande passante et délai par défaut)", "EIGRP converge généralement plus vite grâce à l'algorithme DUAL et aux routes de secours (feasible successor)", "OSPF et EIGRP ont la même distance administrative par défaut", "EIGRP est un protocole à vecteur de distance avancé, OSPF un protocole à état de lien"],
-    ans: ["OSPF calcule le coût selon la bande passante de l'interface, EIGRP utilise une métrique composite (bande passante et délai par défaut)", "EIGRP converge généralement plus vite grâce à l'algorithme DUAL et aux routes de secours (feasible successor)", "EIGRP est un protocole à vecteur de distance avancé, OSPF un protocole à état de lien"]
-  },
+opts: ["OSPF calcule le coût selon la bande passante de l'interface, EIGRP utilise une métrique composite (bande passante et délai par défaut)", "EIGRP converge généralement plus vite grâce à l'algorithme DUAL et aux routes de secours (feasible successor)", "OSPF et EIGRP ont la même distance administrative par défaut", "EIGRP est un protocole à vecteur de distance avancé, OSPF un protocole à état de lien"]
+  }
 ];
 
 let timerInterval = null;
@@ -277,13 +259,6 @@ window.addEventListener('pagehide', finalFlush);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') finalFlush();
 });
-
-/* ============================================================
-   INITIALISATION DES HASHES
-   ============================================================ */
-async function initHashes() {
-  for (let i = 0; i < QCM.length; i++) QCM[i].hash = await sha256(QCM_ANSWERS[i]);
-}
 
 /* ============================================================
    IMAGE DU SCHÉMA RÉSEAU (intégrée en SVG, reconstitution du schéma fourni)
@@ -720,11 +695,9 @@ async function startExam() {
     const host = window.location.host;
     const directFile = window.location.protocol === 'file:';
     if (directFile) {
-      setLoginStatus('err', 'Erreur : fichier ouvert directement. Utilisez http://localhost/ExamenReseau2DeptReseauModulaire/');
-    } else if (host.indexOf('github') !== -1) {
-      setLoginStatus('err', 'Cette version (GitHub) ne fonctionne pas : elle n\'a pas de base de données ni de PHP. Utilisez l\'adresse donnée par l\'enseignant (http://localhost/ExamenReseau2DeptReseauModulaire/).');
+      setLoginStatus('err', 'Erreur : fichier ouvert directement. Ouvrez l\'URL de l\'examen fournie par l\'enseignant (elle doit commencer par http:// ou https://).');
     } else if (host !== 'localhost' && host !== '127.0.0.1') {
-      setLoginStatus('err', 'Serveur injoignable via ' + window.location.href + ' — vérifiez la connexion réseau.');
+      setLoginStatus('err', 'Serveur injoignable via ' + window.location.href + ' — vérifiez votre connexion internet (Wi-Fi ou données mobiles) puis réessayez. Si le problème persiste, contactez votre enseignant.');
     } else {
       setLoginStatus('err', 'Serveur injoignable — vérifiez que MySQL et Apache sont démarrés.');
     }
@@ -759,27 +732,10 @@ function updateTimerDisplay() {
    CORRECTION AUTOMATIQUE
    ============================================================ */
 async function gradeObjective() {
-  let score = 0;
-  let detail = [];
-  let qi = 0;
-
-for (let i = 0; i < QCM.length; i++, qi++) {
-    const userAns = userAnswers[qi] || null;
-    const userHash = userAns ? await sha256(userAns) : null;
-    const correct = userHash === QCM[i].hash;
-    if (correct) score += QCM_PTS; // QCM 1.25 pts chak
-    detail.push(`A.${i+1}: ${userAns || '(sans r\u00e9ponse)'} ${correct ? '[correct]' : '[incorrect]'}`);
-  }
-for (let i = 0; i < MULTI.length; i++, qi++) {
-    const userSelected = Array.isArray(userAnswers[qi]) ? userAnswers[qi] : [];
-    const correctSet = new Set(MULTI[i].ans);
-    const userSet = new Set(userSelected);
-    const isExactMatch = correctSet.size === userSet.size && [...correctSet].every(a => userSet.has(a));
-    if (isExactMatch) score += MULTI_PTS; // Multi 1.25 pts chak
-    detail.push(`B.${i+1}: ${userSelected.join(', ') || '(sans r\u00e9ponse)'} ${isExactMatch ? '[correct]' : '[incorrect]'}`);
-  }
-
-  return { score, detail };
+  if (!sessionKey) throw new Error('Aucune session active.');
+  const res = await apiPost('grade.php', { session_key: sessionKey, answers: userAnswers });
+  if (!res.ok) throw new Error(res.message || 'Note indisponible.');
+  return { score: res.score, detail: res.detail };
 }
 
 function collectSubjective() {
@@ -826,6 +782,8 @@ function collectSubjective() {
 let lastEmailBody = '';
 let lastEmailHtml = '';
 let lastEmailSubject = '';
+let lastSubjective = [];
+let lastGraded = null;
 
 /* Tcheke si etidyan an reponn omwen 1 kesyon -- examen_reseau_v2 */
 function hasAnyAnswer() {
@@ -850,23 +808,59 @@ async function submitExam(autoSubmit) {
   try {
     if (sessionKey) {
       await apiPost('save_answers.php', { session_key: sessionKey, answers: userAnswers });
-      await apiPost('submit_exam.php', { session_key: sessionKey });
+      const sub = await apiPost('submit_exam.php', { session_key: sessionKey });
+      if (!sub || !sub.ok) throw new Error('submit_exam KO');
     }
   } catch (e) { /* rete pare */ }
 
-  const { score: objectiveScore, detail } = await gradeObjective();
   const subjectiveAnswers = collectSubjective();
+  lastSubjective = subjectiveAnswers;
 
   document.getElementById('screen-exam').classList.remove('show');
   document.getElementById('screen-done').classList.add('show');
+  const failEl = document.getElementById('score-fail');
+  if (failEl) failEl.style.display = 'none';
 
   if (autoSubmit) {
     document.getElementById('done-msg').textContent =
       "Le temps imparti est écoulé. Vos réponses ont été soumises automatiquement. Cliquez sur un des boutons ci-dessous pour transmettre vos résultats à l'enseignant.";
   }
 
-  buildEmailContent(objectiveScore, detail, subjectiveAnswers);
-  setupSubmitButtons(objectiveScore, detail, subjectiveAnswers);
+  /* Nòt automatique sou serveur — retry si rezo a fèbl */
+  lastGraded = null;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      lastGraded = await gradeObjective();
+      break;
+    } catch (e) {
+      if (attempt < 4) await new Promise(r => setTimeout(r, 1500));
+    }
+  }
+
+  if (lastGraded) {
+    buildEmailContent(lastGraded.score, lastGraded.detail, subjectiveAnswers);
+    setupSubmitButtons(lastGraded.score, lastGraded.detail, subjectiveAnswers);
+  } else if (failEl) {
+    failEl.style.display = 'block';
+  }
+}
+
+async function retryScore() {
+  const btn = document.getElementById('score-retry-btn');
+  const msg = document.getElementById('score-retry-msg');
+  if (btn) { btn.disabled = true; btn.textContent = 'Réessai en cours...'; }
+  try { lastGraded = await gradeObjective(); } catch (e) { lastGraded = null; }
+  if (btn) { btn.disabled = false; btn.textContent = 'Réessayer'; }
+  if (lastGraded) {
+    const failEl = document.getElementById('score-fail');
+    if (failEl) failEl.style.display = 'none';
+    document.getElementById('done-msg').textContent =
+      'Vos réponses ont été enregistrées dans la base de données et transmises à l\'enseignant.';
+    buildEmailContent(lastGraded.score, lastGraded.detail, lastSubjective);
+    setupSubmitButtons(lastGraded.score, lastGraded.detail, lastSubjective);
+  } else if (msg) {
+    msg.textContent = 'Le serveur ne répond toujours pas. Vérifiez la connexion puis réessayez.';
+  }
 }
 
 function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
@@ -1079,5 +1073,4 @@ function updateStartBtn() {
   if (codeInput) codeInput.addEventListener('input', updateStartBtn);
   if (nameInput) nameInput.addEventListener('input', updateStartBtn);
   updateStartBtn();
-  await initHashes();
 })();
