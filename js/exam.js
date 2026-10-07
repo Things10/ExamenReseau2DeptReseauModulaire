@@ -108,8 +108,23 @@ const EXOS = [
   {
     title: "Exercice 3",
     type: 'vlsm',
-    intro: "Etudiez le plan d'adressage pr\u00e9sent\u00e9 sur les sch\u00e9mas ci-dessus et compl\u00e9tez le tableau des sous-r\u00e9seaux.",
-    imgs: ["img/section4-exo3-vlsm1.png", "img/section4-exo3-vlsm2.png"],
+    intro: "Le r\u00e9seau d'une Entreprise est constitu\u00e9 de quatre sous-r\u00e9seaux dont le nombre de machines est r\u00e9parti comme l'indique le tableau suivant :",
+    dataTable: {
+      cols: ["Nom de r\u00e9seau", "Nombre d'h\u00f4tes"],
+      rows: [
+        ["Beni-Mellal", "124"],
+        ["Oued zem", "12"],
+        ["Kh\u00e9nifra", "100"],
+        ["Azillal", "30"],
+        ["Bejaad", "59"],
+        ["Khouribga", "122"],
+        ["Tadla", "24"],
+        ["WAN1", "2"],
+        ["WAN2", "2"],
+        ["WAN3", "2"]
+      ]
+    },
+    dataNoteAfter: "L'adresse r\u00e9seau utilis\u00e9e est : 172.16.0.0/16\n\nEn utilisant la technique VLSM, \u00e9tablir un plan d'adressage convenable et remplir le tableau suivant :",
     tableCols: ["Nom de r\u00e9seau", "Adresse r\u00e9seau", "Masque d\u00e9cimal", "Adresse d\u00e9but", "Adresse fin", "Adresse diffusion", "Nombre d'h\u00f4tes"],
     vlsmRows: ["Beni-Mellal", "Oued zem", "Khenifra", "Azillal", "Bejaad", "Khouribga", "Tadla", "Wan1", "Wan2", "Wan3"]
   }
@@ -427,6 +442,29 @@ function buildQuestionHTML(idx, q) {
       html += `</tbody>`;
       html += `</table>`;
       html += `</div>`;
+    }
+    if (q.dataTable) {
+      html += `<div class="exo-table-wrap">`;
+      html += `<table class="exo-table exo-data-table" id="exo-data-${idx}">`;
+      html += `<thead><tr>`;
+      q.dataTable.cols.forEach((col) => {
+        html += `<th>${col}</th>`;
+      });
+      html += `</tr></thead>`;
+      html += `<tbody>`;
+      q.dataTable.rows.forEach(row => {
+        html += `<tr>`;
+        row.forEach((val, c) => {
+          html += `<td class="exo-cell${c === 0 ? ' exo-lbl' : ''}">${val}</td>`;
+        });
+        html += `</tr>`;
+      });
+      html += `</tbody>`;
+      html += `</table>`;
+      html += `</div>`;
+      if (q.dataNoteAfter) {
+        html += `<p class="exo-note-table" style="white-space:pre-line">${q.dataNoteAfter}</p>`;
+      }
     }
     if (q.tableCols && q.vlsmRows) {
       html += `<div class="exo-table-wrap">`;
@@ -749,6 +787,11 @@ function collectSubjective() {
     const data = userAnswers[idx] || {};
     let out = `D.${i+1} (15 pts) ${item.title}\n`;
     if (item.intro) out += ` ${item.intro}\n`;
+    if (item.dataTable) {
+      out += `\n${item.dataTable.cols.join(' | ')}\n`;
+      item.dataTable.rows.forEach(row => { out += ` ${row.join(' | ')}\n`; });
+    }
+    if (item.dataNoteAfter) out += `\n${item.dataNoteAfter}\n`;
     if (item.qs) {
       out += `\nQuestions :\n`;
       item.qs.forEach((qtxt, qi) => {
@@ -957,6 +1000,18 @@ function buildEmailHtml(objectiveScore, detail, subjectiveAnswers, autoTotal, su
     h += `<div style="background:#FAFCFB;border:1px solid #E0E0E0;border-radius:8px;padding:12px 14px;margin-bottom:14px">`;
     h += `<p style="margin:0 0 6px"><strong>D.${i + 1} — ${escHtml(item.title)}</strong></p>`;
     if (item.intro) h += `<p style="margin:0 0 8px;color:#4A4A4A">${escHtml(item.intro)}</p>`;
+    if (item.dataTable) {
+      h += `<div style="overflow-x:auto;margin:6px 0">`;
+      h += `<table style="border-collapse:collapse;margin:0 auto">`;
+      h += `<tr>${item.dataTable.cols.map(c => `<th style="${thCss}">${escHtml(c)}</th>`).join('')}</tr>`;
+      item.dataTable.rows.forEach(row => {
+        h += `<tr><td style="${tdCss}${lblCss}">${escHtml(row[0])}</td>`;
+        h += row.slice(1).map(v => `<td style="${tdCss}font-family:Consolas,monospace;text-align:center">${escHtml(v)}</td>`).join('');
+        h += `</tr>`;
+      });
+      h += `</table></div>`;
+      if (item.dataNoteAfter) h += `<p style="margin:6px 0 10px;color:#4A4A4A;white-space:pre-line">${escHtml(item.dataNoteAfter)}</p>`;
+    }
     if (item.qs) {
       item.qs.forEach((qtxt, qi) => {
         const v = data['q' + qi] || '';

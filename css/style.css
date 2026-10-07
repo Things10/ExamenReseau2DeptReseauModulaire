@@ -354,6 +354,9 @@
     display: flex; flex-direction: column; align-items: center;
     margin: 16px 0 22px;
   }
+  .exo-data-table {
+    min-width: 340px; max-width: 520px; width: auto;
+  }
   .exo-note-table { font-size: 12.5px; color: var(--text-dim); margin: 0 0 10px; }
   .exo-table {
     border-collapse: collapse; table-layout: auto;
