@@ -32,7 +32,17 @@ function json_out(array $data, int $status = 200): void {
 }
 
 function body_json(): array {
+    $in = array_merge($_GET, $_POST);
+    if (isset($in['data']) && is_string($in['data'])) {
+        $decoded = json_decode($in['data'], true);
+        if (is_array($decoded)) {
+            $in = array_merge($in, $decoded);
+        }
+    }
     $raw = file_get_contents('php://input');
-    $data = json_decode($raw, true);
-    return is_array($data) ? $data : [];
+    $json = json_decode($raw, true);
+    if (is_array($json)) {
+        $in = array_merge($in, $json);
+    }
+    return $in;
 }

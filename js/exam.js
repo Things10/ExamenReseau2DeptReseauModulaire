@@ -179,10 +179,11 @@ let studentName = "";
    APPEL API PHP (local)
    ============================================================ */
 async function apiPost(endpoint, payload) {
+  const body = 'data=' + encodeURIComponent(JSON.stringify(payload));
   const res = await fetch(API_BASE + endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body
   });
   return res.json();
 }
