@@ -7,7 +7,7 @@ const EMAILJS_SERVICE_ID = "service_jjqlfck";
 const EMAILJS_TEMPLATE_ID = "template_a9uazrs";
 const EMAILJS_PUBLIC_KEY = "8ZF_oJb8pHOzojn1p";
 const API_BASE = "api/";          // endpoint PHP lokal
-const EXAM_DURATION_SECONDS = 150 * 60; // sekou si server pa reponn
+const EXAM_DURATION_SECONDS = 120 * 60; // sekou si server pa reponn
 
 /* Sesyon aktyèl la (gade ak PHP validation) */
 let sessionKey = null;

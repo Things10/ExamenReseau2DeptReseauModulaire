@@ -10,7 +10,7 @@ define('DB_HOST', '127.0.0.1');
 define('DB_NAME', 'examen_reseau2');
 define('DB_USER', 'root');
 define('DB_PASS', '');   // XAMPP/MariaDB default = pa gen paswòd
-define('EXAM_DURATION_MINUTES', 150);
+define('EXAM_DURATION_MINUTES', 120);
 
 function db(): PDO {
     static $pdo = null;
