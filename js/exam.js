@@ -279,17 +279,20 @@ document.addEventListener('visibilitychange', () => {
 /* ============================================================
    SESSION PÉRSISTAN — refresh / fermeture pa voye navigateur la
    kote kod + non; sesyon an restore nan kote li te ye.
+   - refresh (menm tab) → automatic restore
+   - paj fèmen / relouvri → login (sessionStorage fin effacé),
+     men apre re-entrée code+nom, repons yo restore depi server.
    ============================================================ */
 const SESSION_STORE_KEY = 'exam2_session_v1';
 
 function resumeStore(code, name) {
-  try { localStorage.setItem(SESSION_STORE_KEY, JSON.stringify({ code, name })); } catch (e) {}
+  try { sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify({ code, name })); } catch (e) {}
 }
 function resumeRead() {
-  try { return JSON.parse(localStorage.getItem(SESSION_STORE_KEY) || 'null'); } catch (e) { return null; }
+  try { return JSON.parse(sessionStorage.getItem(SESSION_STORE_KEY) || 'null'); } catch (e) { return null; }
 }
 function resumeClear() {
-  try { localStorage.removeItem(SESSION_STORE_KEY); } catch (e) {}
+  try { sessionStorage.removeItem(SESSION_STORE_KEY); } catch (e) {}
 }
 
 async function enterExamView() {
