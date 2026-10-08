@@ -1048,9 +1048,10 @@ function buildEmailHtml(objectiveScore, detail, subjectiveAnswers, autoTotal, su
   });
 
   h += `<div style="background:#F3FAF7;border:1px solid #C9E8DC;border-radius:8px;padding:12px 16px;margin-top:14px">`;
-  h += `<p style="margin:0 0 4px"><strong>Note automatique</strong> : ${objectiveScore} / ${autoTotal}</p>`;
-  h += `<p style="margin:0 0 4px"><strong>Note manuelle (subjectif)</strong> : ____ / ${subjTotal}</p>`;
-  h += `<p style="margin:0 0 4px"><strong>TOTAL</strong> : ____ / ${grandTotal}</p>`;
+  h += `<p style="margin:0 0 6px;font-size:15px"><strong>NOTE FINALE</strong></p>`;
+  h += `<p style="margin:0 0 4px"><strong>Note automatique</strong> : ${objectiveScore} pts / ${autoTotal}</p>`;
+  h += `<p style="margin:0 0 4px"><strong>Note manuelle (à compléter)</strong> : <u>________</u> pts / ${subjTotal}</p>`;
+  h += `<p style="margin:8px 0 4px;border-top:1px dashed #C9E8DC;padding-top:6px"><strong>NOTE FINALE</strong> : ${objectiveScore} + <u>________</u> = <u>________</u> pts / <strong>${grandTotal}</strong></p>`;
   h += `<p style="margin:0"><strong>Seuil de réussite</strong> : ${seuil} / ${grandTotal}</p>`;
   h += `</div>`;
 
