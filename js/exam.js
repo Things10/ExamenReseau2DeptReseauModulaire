@@ -263,7 +263,7 @@ async function loadSavedAnswers() {
 function finalFlush() {
   if (!sessionKey || examSubmitted) return;
   try {
-    const blob = new Blob([JSON.stringify({ session_key: sessionKey, answers: userAnswers })], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ session_key: sessionKey, answers: userAnswers })], { type: 'text/plain;charset=UTF-8' });
     let sent = false;
     try { sent = navigator.sendBeacon('api/save_answers.php', blob); } catch (e) { sent = false; }
     if (!sent) {
@@ -275,6 +275,62 @@ window.addEventListener('pagehide', finalFlush);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') finalFlush();
 });
+
+/* ============================================================
+   SESSION PÉRSISTAN — refresh / fermeture pa voye navigateur la
+   kote kod + non; sesyon an restore nan kote li te ye.
+   ============================================================ */
+const SESSION_STORE_KEY = 'exam2_session_v1';
+
+function resumeStore(code, name) {
+  try { localStorage.setItem(SESSION_STORE_KEY, JSON.stringify({ code, name })); } catch (e) {}
+}
+function resumeRead() {
+  try { return JSON.parse(localStorage.getItem(SESSION_STORE_KEY) || 'null'); } catch (e) { return null; }
+}
+function resumeClear() {
+  try { localStorage.removeItem(SESSION_STORE_KEY); } catch (e) {}
+}
+
+async function enterExamView() {
+  document.getElementById('student-label').textContent = studentName;
+  document.getElementById('screen-intro').style.display = 'none';
+  document.getElementById('screen-exam').classList.add('show');
+  currentSectionIdx = 0;
+  userAnswers = {};
+  document.getElementById('q-section-label').style.display = 'block';
+  document.getElementById('q-container').style.display = 'block';
+  document.getElementById('q-container').className = '';
+  document.getElementById('nav-zone').style.display = 'block';
+  document.getElementById('screen-summary').style.display = 'none';
+  renderSection(0);
+  await loadSavedAnswers();
+  renderSection(currentSectionIdx);
+  startTimer();
+  setSaveStatus('saved', 'Enregistré');
+  setTimeout(() => {
+    const card = document.querySelector('#q-container .q-card');
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+async function resumeSession(code, name) {
+  try {
+    const res = await apiPost('validate_code.php', { code, name });
+    if (!res || !res.ok || !res.session_key) {
+      resumeClear();
+      return false;
+    }
+    sessionKey = res.session_key;
+    studentName = (res.student && res.student.name) || name;
+    remainingSeconds = res.remaining_seconds || EXAM_DURATION_SECONDS;
+    resumeStore((res.student && res.student.code) || code, studentName);
+    await enterExamView();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
 /* ============================================================
    IMAGE DU SCHÉMA RÉSEAU (intégrée en SVG, reconstitution du schéma fourni)
@@ -704,29 +760,8 @@ async function startExam() {
     sessionKey = res.session_key;
     studentName = res.name || enteredName;
     remainingSeconds = res.remaining_seconds;
-
-    document.getElementById('student-label').textContent = studentName;
-
-    document.getElementById('screen-intro').style.display = 'none';
-    document.getElementById('screen-exam').classList.add('show');
-
-    currentSectionIdx = 0;
-    userAnswers = {};
-    document.getElementById('q-section-label').style.display = 'block';
-    document.getElementById('q-container').style.display = 'block';
-    document.getElementById('q-container').className = '';
-    document.getElementById('nav-zone').style.display = 'block';
-    document.getElementById('screen-summary').style.display = 'none';
-
-    renderSection(0);
-    await loadSavedAnswers();
-    renderSection(currentSectionIdx); // re-render avèk repons rezime yo
-    startTimer();
-    setSaveStatus('saved', 'Enregistré');
-    setTimeout(() => {
-      const card = document.querySelector('#q-container .q-card');
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+    resumeStore((res.student && res.student.code) || enteredCode, studentName); // restore sou refresh
+    await enterExamView();
   } catch (e) {
     console.error(e);
     btn.disabled = false;
@@ -854,6 +889,7 @@ async function submitExam(autoSubmit) {
       await apiPost('save_answers.php', { session_key: sessionKey, answers: userAnswers });
       const sub = await apiPost('submit_exam.php', { session_key: sessionKey });
       if (!sub || !sub.ok) throw new Error('submit_exam KO');
+      resumeClear(); // apre soumission reyusi, refresh retounen login
     }
   } catch (e) { /* rete pare */ }
 
@@ -1130,4 +1166,11 @@ function updateStartBtn() {
   if (codeInput) codeInput.addEventListener('input', updateStartBtn);
   if (nameInput) nameInput.addEventListener('input', updateStartBtn);
   updateStartBtn();
+
+  /* Sesyon ki te kòmanse deja (refresh / paj fèmen) → restore li dirèk */
+  const saved = resumeRead();
+  if (saved && saved.code && saved.name) {
+    const ok = await resumeSession(saved.code, saved.name);
+    if (!ok) updateStartBtn();
+  }
 })();
