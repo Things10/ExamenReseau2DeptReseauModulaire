@@ -221,8 +221,8 @@ if ($auth) {
   <form class="card login" method="post" action="teacher.php">
     <h2>Connexion enseignant</h2>
     <?php if ($error !== ''): ?><div class="err"><?= esc($error) ?></div><?php endif; ?>
-    <label for="pass">Mot de passe</label>
-    <input type="password" id="pass" name="pass" autocomplete="current-password" required>
+    <label for="pass">Code d'accès enseignant</label>
+    <input type="text" id="pass" name="pass" autocomplete="off" required>
     <input type="hidden" name="action" value="login">
     <button type="submit" class="btn">Se connecter</button>
   </form>
