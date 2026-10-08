@@ -939,12 +939,12 @@ function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
     body += `${'·'.repeat(60)}\n\n`;
   });
   body += `\n${'═'.repeat(60)}\n`;
-  body += ` CALCUL FINAL (à compléter par l'enseignant)\n`;
+  body += ` NOTE FINALE (à compléter par l'enseignant)\n`;
   body += `${'═'.repeat(60)}\n`;
-  body += ` Note automatique        : ${objectiveScore} / ${autoTotal}\n`;
-  body += ` Note manuelle (subjectif) : ____ / ${subjTotal}\n`;
+  body += ` Note automatique         : ${objectiveScore} pts / ${autoTotal}\n`;
+  body += ` Note manuelle (à compléter) : _______ pts / ${subjTotal}\n`;
   body += ` ───────────────────────────\n`;
-  body += ` TOTAL                   : ____ / ${grandTotal}\n`;
+  body += ` NOTE FINALE              : ${objectiveScore} + _______ = _______ pts / ${grandTotal}\n`;
   body += ` Seuil de r\u00e9ussite        : ${seuil} / ${grandTotal}\n\n`;
   body += `${'─'.repeat(60)}\n`;
   body += ` Document généré automatiquement — Examen Réseau 2\n`;
