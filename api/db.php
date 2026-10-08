@@ -11,6 +11,7 @@ define('DB_NAME', 'examen_reseau2');
 define('DB_USER', 'root');
 define('DB_PASS', '');   // XAMPP/MariaDB default = pa gen paswòd
 define('EXAM_DURATION_MINUTES', 120);
+define('TEACHER_PASS', 'reseau2026');   // paswòd Espace enseignant (teacher.php)
 
 function db(): PDO {
     static $pdo = null;

@@ -48,6 +48,17 @@ CREATE TABLE IF NOT EXISTS answers (
 ) ENGINE=InnoDB;
 
 -- ------------------------------------------------------------
+-- NOT FINAL — note manuelle + total (Espace enseignant / teacher.php)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS grades (
+  session_key  VARCHAR(64) PRIMARY KEY,
+  auto_score   DECIMAL(6,2) NOT NULL DEFAULT 0,
+  manual_score DECIMAL(6,2) NOT NULL DEFAULT 0,
+  total        DECIMAL(6,2) NOT NULL DEFAULT 0,
+  updated_at   DATETIME DEFAULT NULL
+) ENGINE=InnoDB;
+
+-- ------------------------------------------------------------
 -- SEED — Lis etidyan yo (MODIFYE selon lis klas ou)
 -- Kod la YONIK + non ofisyèl obligatwa pou antre
 -- ------------------------------------------------------------
