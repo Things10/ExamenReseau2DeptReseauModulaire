@@ -296,6 +296,8 @@ function resumeClear() {
 }
 
 async function enterExamView() {
+  const loadEl = document.getElementById('session-loading');
+  if (loadEl) loadEl.style.display = 'none';
   document.getElementById('student-label').textContent = studentName;
   document.getElementById('screen-intro').style.display = 'none';
   document.getElementById('screen-exam').classList.add('show');
@@ -1170,10 +1172,22 @@ function updateStartBtn() {
   if (nameInput) nameInput.addEventListener('input', updateStartBtn);
   updateStartBtn();
 
-  /* Sesyon ki te kòmanse deja (refresh / paj fèmen) → restore li dirèk */
+  /* Sesyon ki te kòmanse deja (refresh / paj fèmen) → restore li dirèk,
+     san paj kòmansman an pa flote */
   const saved = resumeRead();
   if (saved && saved.code && saved.name) {
+    document.getElementById('screen-intro').style.display = 'none';
+    document.getElementById('screen-exam').classList.add('show');
+    const loadEl = document.getElementById('session-loading');
+    if (loadEl) loadEl.style.display = 'block';
     const ok = await resumeSession(saved.code, saved.name);
-    if (!ok) updateStartBtn();
+    if (!ok) {
+      document.getElementById('screen-exam').classList.remove('show');
+      document.getElementById('screen-intro').style.display = 'block';
+      if (loadEl) loadEl.style.display = 'none';
+      updateStartBtn();
+    }
+  } else {
+    updateStartBtn();
   }
 })();
