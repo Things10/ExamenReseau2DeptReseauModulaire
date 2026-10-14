@@ -293,7 +293,20 @@ function resumeRead() {
 }
 function resumeClear() {
   try { sessionStorage.removeItem(SESSION_STORE_KEY); } catch (e) {}
+  clearSectionIdx();
 }
+
+/* Seksyon aktyèl la : pou refresh rete sou menm seksyon an */
+const SECTION_STORE_KEY = 'exam2_section_v1';
+function saveSectionIdx(i) { try { sessionStorage.setItem(SECTION_STORE_KEY, String(i)); } catch (e) {} }
+function readSectionIdx() {
+  try {
+    const v = parseInt(sessionStorage.getItem(SECTION_STORE_KEY), 10);
+    if (!isNaN(v) && v >= 0 && v < SECTIONS.length) return v;
+  } catch (e) {}
+  return 0;
+}
+function clearSectionIdx() { try { sessionStorage.removeItem(SECTION_STORE_KEY); } catch (e) {} }
 
 async function enterExamView() {
   const loadEl = document.getElementById('session-loading');
@@ -301,7 +314,7 @@ async function enterExamView() {
   document.getElementById('student-label').textContent = studentName;
   document.getElementById('screen-intro').style.display = 'none';
   document.getElementById('screen-exam').classList.add('show');
-  currentSectionIdx = 0;
+  currentSectionIdx = readSectionIdx();
   userAnswers = {};
   document.getElementById('q-section-label').style.display = 'block';
   document.getElementById('q-container').style.display = 'block';
@@ -497,7 +510,7 @@ function buildQuestionHTML(idx, q) {
         html += `<tr>`;
         for (let c = 0; c < q.table4.cols.length; c++) {
           const val = (data.rows && data.rows[r] && data.rows[r][c]) || '';
-          html += `<td class="exo-cell"><input class="exo-table-input" data-idx="${idx}" data-r="${r}" data-c="${c}" value="${val.replace(/"/g, '&quot;')}" autocomplete="off"></td>`;
+          html += `<td class="exo-cell"><input class="exo-table-input" data-idx="${idx}" data-r="${r}" data-c="${c}" value="${val.replace(/"/g, '&quot;')}" inputmode="decimal" pattern="[0-9.\\-]*" autocomplete="off"></td>`;
         }
         html += `</tr>`;
       }
@@ -543,7 +556,7 @@ function buildQuestionHTML(idx, q) {
         html += `<td class="exo-cell exo-lbl">${lbl}</td>`;
         for (let c = 1; c < q.tableCols.length; c++) {
           const val = (data.rows && data.rows[r] && data.rows[r][c]) || '';
-          html += `<td class="exo-cell"><input class="exo-table-input" data-idx="${idx}" data-r="${r}" data-c="${c}" value="${val.replace(/"/g, '&quot;')}" autocomplete="off"></td>`;
+          html += `<td class="exo-cell"><input class="exo-table-input" data-idx="${idx}" data-r="${r}" data-c="${c}" value="${val.replace(/"/g, '&quot;')}" inputmode="decimal" pattern="[0-9.\\-]*" autocomplete="off"></td>`;
         }
         html += `</tr>`;
       });
@@ -559,6 +572,7 @@ function buildQuestionHTML(idx, q) {
 
 function renderSection(sectionIdx) {
   const section = SECTIONS[sectionIdx];
+  saveSectionIdx(sectionIdx);
   const container = document.getElementById('q-container');
   const label = document.getElementById('q-section-label');
   label.textContent = SECTION_LABELS[section] || '';
@@ -577,7 +591,15 @@ function renderSection(sectionIdx) {
     inp.dataset.bound = '1';
   });
   container.querySelectorAll('.exo-table-input:not([data-bound])').forEach(inp => {
-    inp.addEventListener('input', () => ansExoCell(+inp.dataset.idx, +inp.dataset.r, +inp.dataset.c, inp.value));
+    inp.addEventListener('input', () => {
+      const cleaned = inp.value.replace(/[^0-9.\-]/g, '');
+      if (cleaned !== inp.value) {
+        const pos = inp.selectionStart;
+        inp.value = cleaned;
+        try { inp.setSelectionRange(pos, pos); } catch (e) {}
+      }
+      ansExoCell(+inp.dataset.idx, +inp.dataset.r, +inp.dataset.c, inp.value);
+    });
     inp.dataset.bound = '1';
   });
   updateProgress();
@@ -773,6 +795,7 @@ async function startExam() {
     studentName = res.name || enteredName;
     remainingSeconds = res.remaining_seconds;
     resumeStore((res.student && res.student.code) || enteredCode, studentName, (res.student && res.student.email) || enteredEmail); // restore sou refresh
+    saveSectionIdx(0); // nouvo kòmansman : toujou kòmanse nan seksyon A
     await enterExamView();
   } catch (e) {
     console.error(e);

@@ -8,6 +8,43 @@
 declare(strict_types=1);
 require __DIR__ . '/db.php';
 
+/* Nòmalize yon non : miniskil, san aksan, espas miltip -> yon sèl espas */
+function norm_name(string $s): string {
+    $s = mb_strtolower(trim($s), 'UTF-8');
+    $accents = [
+        'à'=>'a','á'=>'a','â'=>'a','ä'=>'a','ã'=>'a','å'=>'a','ā'=>'a','ă'=>'a','ą'=>'a',
+        'ç'=>'c','ć'=>'c','č'=>'c',
+        'è'=>'e','é'=>'e','ê'=>'e','ë'=>'e','ē'=>'e','ĕ'=>'e','ė'=>'e','ę'=>'e','ě'=>'e',
+        'ì'=>'i','í'=>'i','î'=>'i','ï'=>'i','ī'=>'i','ĭ'=>'i','į'=>'i','ı'=>'i',
+        'ñ'=>'n','ń'=>'n','ň'=>'n',
+        'ò'=>'o','ó'=>'o','ô'=>'o','ö'=>'o','õ'=>'o','ø'=>'o','ō'=>'o','ŏ'=>'o','ő'=>'o',
+        'ù'=>'u','ú'=>'u','û'=>'u','ü'=>'u','ū'=>'u','ŭ'=>'u','ů'=>'u','ű'=>'u','ų'=>'u',
+        'ý'=>'y','ÿ'=>'y','ŷ'=>'y',
+        'ß'=>'ss','ş'=>'s','ș'=>'s','š'=>'s','ś'=>'s','ŝ'=>'s',
+        'ţ'=>'t','ť'=>'t','ț'=>'t',
+        'ž'=>'z','ź'=>'z','ż'=>'z',
+        'œ'=>'oe','æ'=>'ae',
+    ];
+    $s = strtr($s, $accents);
+    if (function_exists('iconv')) {
+        $conv = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
+        if ($conv !== false) { $s = $conv; }
+    }
+    $s = preg_replace('/[^a-z0-9]+/', ' ', $s);
+    $s = trim(preg_replace('/ +/', ' ', (string)$s));
+    return (string)$s;
+}
+
+/* Verifye non an : asepte non konplè, oswa yon mo sèl (non OSWA prenon).
+   Aksepte aksan ak espas miltip (nòmalize anvan konpare). */
+function name_matches(string $official, string $typed): bool {
+    $o = norm_name($official);
+    $t = norm_name($typed);
+    if ($t === '' || $o === '') { return false; }
+    if ($t === $o) { return true; }
+    return (bool)preg_match('/(?:^| )' . preg_quote($t, '/') . '(?: |$)/u', $o);
+}
+
 $in = body_json();
 $code = trim((string)($in['code'] ?? ''));
 $name = trim((string)($in['name'] ?? ''));
@@ -39,9 +76,9 @@ if (!$student) {
     json_out(['ok' => false, 'message' => 'Ce code n\'est pas reconnu. Vérifiez auprès de votre enseignant.']);
 }
 
-/* Non an dwe koresponn ak non ofisyèl la (enpòtan pou se siy li) */
-if (strcasecmp($student['name'], $name) !== 0) {
-    json_out(['ok' => false, 'message' => 'Ce code n\'est pas associé à ce nom. Vous ne pouvez pas utiliser le code d\'un autre étudiant.']);
+/* Non an dwe koresponn ak non ofisyèl la (nom oswa prénom, san aksan, espas miltip OK) */
+if (!name_matches((string)$student['name'], $name)) {
+    json_out(['ok' => false, 'message' => 'Ce code n\'est pas associé à ce nom. Entrez votre nom ou prénom tel qu\'enregistré (les accents et espaces multiples sont acceptés).']);
 }
 
 /* Sove email etidyan an si li bay yon sèl valab */
