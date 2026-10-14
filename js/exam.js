@@ -310,19 +310,23 @@ function clearSectionIdx() { try { sessionStorage.removeItem(SECTION_STORE_KEY);
 
 async function enterExamView() {
   const loadEl = document.getElementById('session-loading');
-  if (loadEl) loadEl.style.display = 'none';
+  if (loadEl) loadEl.style.display = 'block';
   document.getElementById('student-label').textContent = studentName;
   document.getElementById('screen-intro').style.display = 'none';
   document.getElementById('screen-exam').classList.add('show');
   currentSectionIdx = readSectionIdx();
   userAnswers = {};
+  /* Nou kache kontni an pandan chajman an, pou sekyson A pa parèt yon ti moman */
+  document.getElementById('q-section-label').style.display = 'none';
+  document.getElementById('q-container').style.display = 'none';
+  document.getElementById('q-container').className = '';
+  document.getElementById('nav-zone').style.display = 'none';
+  document.getElementById('screen-summary').style.display = 'none';
+  await loadSavedAnswers();
+  if (loadEl) loadEl.style.display = 'none';
   document.getElementById('q-section-label').style.display = 'block';
   document.getElementById('q-container').style.display = 'block';
-  document.getElementById('q-container').className = '';
   document.getElementById('nav-zone').style.display = 'block';
-  document.getElementById('screen-summary').style.display = 'none';
-  renderSection(0);
-  await loadSavedAnswers();
   renderSection(currentSectionIdx);
   startTimer();
   setSaveStatus('saved', 'Enregistré');
@@ -587,15 +591,17 @@ function renderSection(sectionIdx) {
   });
   container.innerHTML = html;
   container.querySelectorAll('.exo-input:not([data-bound])').forEach(inp => {
-    inp.addEventListener('input', () => ansExoQ(+inp.dataset.idx, +inp.dataset.qi, inp.value));
+    inp.addEventListener('input', () => { applyIPCap(inp); ansExoQ(+inp.dataset.idx, +inp.dataset.qi, inp.value); });
     inp.dataset.bound = '1';
   });
   container.querySelectorAll('.exo-table-input:not([data-bound])').forEach(inp => {
     inp.addEventListener('input', () => {
-      const cleaned = inp.value.replace(/[^0-9.\-]/g, '');
-      if (cleaned !== inp.value) {
-        const pos = inp.selectionStart;
-        inp.value = cleaned;
+      let v = inp.value.replace(/[^0-9.\-]/g, '');
+      v = capIPOctets(v);
+      if (v !== inp.value) {
+        const diff = inp.value.length - v.length;
+        const pos = Math.max(0, (inp.selectionStart || v.length) - diff);
+        inp.value = v;
         try { inp.setSelectionRange(pos, pos); } catch (e) {}
       }
       ansExoCell(+inp.dataset.idx, +inp.dataset.r, +inp.dataset.c, inp.value);
@@ -666,6 +672,25 @@ function ansExoCell(idx, r, c, val) {
   if (!userAnswers[idx].rows[r]) userAnswers[idx].rows[r] = [];
   userAnswers[idx].rows[r][c] = val;
   scheduleSave();
+}
+
+/* IP : chak gwoup ant pwen pa dwe depase 3 chif (ex: 192.168.1.1).
+   Reg se aplike sèlman si valè a gen yon pwen, konsa chif konte yo
+   (ex: "2046", "510") pa manyen. */
+function capIPOctets(v) {
+  v = String(v == null ? '' : v);
+  if (v.indexOf('.') === -1) return v;
+  return v.replace(/\d{4,}/g, m => m.slice(0, 3));
+}
+function applyIPCap(inp) {
+  const capped = capIPOctets(inp.value);
+  if (capped !== inp.value) {
+    const diff = inp.value.length - capped.length;
+    const pos = Math.max(0, (inp.selectionStart || capped.length) - diff);
+    inp.value = capped;
+    try { inp.setSelectionRange(pos, pos); } catch (e) {}
+  }
+  return inp.value;
 }
 
 /* Fermer modal pop-up la -- examen_reseau_v2 */
