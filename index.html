@@ -10,13 +10,26 @@
 <link rel="stylesheet" href="css/style.css?v=20261006">
 <script>
   /* Anvan nenpòt koulè: si gen yon sesyon an kou, kache ekran kòmansman an
-     pou l pa parèt yon ti moman pandan paj la ap chaje (anti-flash). */
+     pou l pa parèt yon ti moman pandan paj la ap chaje (anti-flash).
+     Epi nou kenbe lè paj la kòmanse chaje, pou spinner an rete vizib
+     yon ti tan minimòm (pou nou wè refresh la). */
   (function () {
     try {
+      window.__bootT0 = Date.now();
       if (sessionStorage.getItem('exam2_session_v1')) {
         document.documentElement.className += ' resume-boot';
       }
     } catch (e) {}
+    /* Sekirite: si JS la pa t fini, nou retire spinner an kanmenm */
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        var o = document.getElementById('boot-overlay');
+        if (o && !o.classList.contains('hide')) {
+          o.classList.add('hide');
+          setTimeout(function () { if (o.parentNode) o.parentNode.removeChild(o); }, 300);
+        }
+      }, 5000);
+    });
   })();
 </script>
 <style>
@@ -27,9 +40,28 @@
   html.resume-boot #q-container { display: none !important; }
   html.resume-boot #nav-zone { display: none !important; }
   html.resume-boot #screen-done { display: none !important; }
+
+  #boot-overlay {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #f5f7fa;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    transition: opacity .3s ease;
+  }
+  #boot-overlay.hide { opacity: 0; pointer-events: none; }
+  #boot-overlay .boot-spinner {
+    width: 46px; height: 46px; border-radius: 50%;
+    border: 4px solid #cdd7e2; border-top-color: #2E6B82;
+    animation: bootspin .8s linear infinite;
+  }
+  #boot-overlay .boot-txt { color: #6b7c8c; font-size: 14px; font-family: inherit; }
+  @keyframes bootspin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
+
+<!-- ===================== SPINNER CHARGEMENT ===================== -->
+<div id="boot-overlay"><div class="boot-spinner"></div><div class="boot-txt">Chargement…</div></div>
 
 <!-- ===================== ÉCRAN EXPIRÉ ===================== -->
 <div id="screen-expired">
@@ -158,6 +190,6 @@
   </div>
 </div>
 
-<script src="js/exam.js?v=20261014b"></script>
+<script src="js/exam.js?v=20261014c"></script>
 </body>
 </html>

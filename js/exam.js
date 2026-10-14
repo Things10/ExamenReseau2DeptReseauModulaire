@@ -369,6 +369,18 @@ async function enterExamView() {
   }, 100);
 }
 
+/* Retire spinner an chajman an : li rete vizib omwen ~500ms pou nou wè refresh la */
+function hideBootOverlay() {
+  const el = document.getElementById('boot-overlay');
+  if (!el) return;
+  const elapsed = Date.now() - (window.__bootT0 || 0);
+  const wait = Math.max(0, 500 - elapsed);
+  setTimeout(() => {
+    el.classList.add('hide');
+    setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 350);
+  }, wait);
+}
+
 /* Afiche egzamen an TOUSWIT depi kachèt lokal la (san rete rezo) */
 function showExamInstant() {
   const loadEl = document.getElementById('session-loading');
@@ -1307,4 +1319,5 @@ function updateStartBtn() {
     document.documentElement.classList.remove('resume-boot');
     updateStartBtn();
   }
+  hideBootOverlay();
 })();
