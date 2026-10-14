@@ -1209,10 +1209,17 @@ function updateStartBtn() {
      san paj kòmansman an pa flote */
   const saved = resumeRead();
   if (saved && saved.code && saved.name) {
+    /* Mete ekran chajman an an plas TOUSWIT (senkron), pou pa gen okenn
+       flash: ni ekran kòmansman an, ni yon lòt seksyon pa parèt. */
     document.getElementById('screen-intro').style.display = 'none';
     document.getElementById('screen-exam').classList.add('show');
+    document.getElementById('q-section-label').style.display = 'none';
+    document.getElementById('q-container').style.display = 'none';
+    document.getElementById('nav-zone').style.display = 'none';
     const loadEl = document.getElementById('session-loading');
     if (loadEl) loadEl.style.display = 'block';
+    /* JS pran kontwòl kounye a : nou pa bezwen klas boot la ankò */
+    document.documentElement.classList.remove('resume-boot');
     const ok = await resumeSession(saved.code, saved.name, saved.email || '');
     if (!ok) {
       document.getElementById('screen-exam').classList.remove('show');
@@ -1221,6 +1228,7 @@ function updateStartBtn() {
       updateStartBtn();
     }
   } else {
+    document.documentElement.classList.remove('resume-boot');
     updateStartBtn();
   }
 })();

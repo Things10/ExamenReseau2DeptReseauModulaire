@@ -3,8 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Examen — Réseau 2</title>
 <link rel="stylesheet" href="css/style.css?v=20261006">
+<script>
+  /* Anvan nenpòt koulè: si gen yon sesyon an kou, kache ekran kòmansman an
+     pou l pa parèt yon ti moman pandan paj la ap chaje (anti-flash). */
+  (function () {
+    try {
+      if (sessionStorage.getItem('exam2_session_v1')) {
+        document.documentElement.className += ' resume-boot';
+      }
+    } catch (e) {}
+  })();
+</script>
+<style>
+  html.resume-boot #screen-intro { display: none !important; }
+  html.resume-boot #screen-exam { display: block !important; }
+  html.resume-boot #session-loading { display: block !important; }
+  html.resume-boot #q-section-label { display: none !important; }
+  html.resume-boot #q-container { display: none !important; }
+  html.resume-boot #nav-zone { display: none !important; }
+  html.resume-boot #screen-done { display: none !important; }
+</style>
 </head>
 <body>
 
@@ -135,6 +158,6 @@
   </div>
 </div>
 
-<script src="js/exam.js?v=20261013a"></script>
+<script src="js/exam.js?v=20261014a"></script>
 </body>
 </html>
