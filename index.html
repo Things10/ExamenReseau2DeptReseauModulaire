@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Examen — Réseau 2</title>
 <link rel="stylesheet" href="css/style.css?v=20261006">
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -42,6 +41,11 @@
   <div class="field-group">
     <label for="student-name">Votre nom complet (tel qu'enregistré)</label>
     <input type="text" id="student-name" placeholder="Exemple : GAUCHIER Steven" autocomplete="off">
+  </div>
+
+  <div class="field-group">
+    <label for="student-email">Votre email (pour recevoir votre résultat)</label>
+    <input type="email" id="student-email" placeholder="Exemple : etudiant@email.com" autocomplete="off">
   </div>
 
   <div class="field-group code-field">
@@ -111,14 +115,12 @@
 <!-- ===================== ÉCRAN FIN ===================== -->
 <div id="screen-done">
   <h1>Examen soumis</h1>
-  <p id="done-msg">Vos réponses ont été enregistrées dans la base de données et transmises à l'enseignant.</p>
+  <p id="done-msg">Vos réponses ont été enregistrées. Votre enseignant les corrigera et vous recevrez votre résultat par email.</p>
   <div id="score-fail" style="display:none;background:#FFF3CD;border:1px solid #FFC107;border-radius:10px;padding:14px 16px;margin:10px 0 14px;text-align:center">
-    <strong style="color:#8A6D1C">La note automatique n'a pas pu être récupérée.</strong>
+    <strong style="color:#8A6D1C">L'enregistrement de votre copie n'a pas pu être finalisé.</strong>
     <p id="score-retry-msg" style="margin:6px 0 10px;color:#6b5412">Vérifiez votre connexion puis réessayez.</p>
     <button class="resend-btn" id="score-retry-btn" onclick="retryScore()">Réessayer</button>
   </div>
-  <button class="resend-btn" id="resend-btn">Ouvrir l'e-mail de résultats</button>
-  <button class="copy-btn" id="copy-btn">Copier les résultats</button>
   <div id="copy-feedback"></div>
 </div>
 
@@ -133,6 +135,6 @@
   </div>
 </div>
 
-<script src="js/exam.js?v=20261007h"></script>
+<script src="js/exam.js?v=20261013a"></script>
 </body>
 </html>

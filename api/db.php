@@ -12,6 +12,7 @@ define('DB_USER', 'root');
 define('DB_PASS', '');   // XAMPP/MariaDB default = pa gen paswòd
 define('EXAM_DURATION_MINUTES', 120);
 define('TEACHER_PASS', 'reseau2026');   // paswòd Espace enseignant (teacher.php)
+define('TEACHER_EMAIL', 'stevengauchier@gmail.com'); // imèl pwofesè a (rapò yo)
 
 function db(): PDO {
     static $pdo = null;

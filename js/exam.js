@@ -285,8 +285,8 @@ document.addEventListener('visibilitychange', () => {
    ============================================================ */
 const SESSION_STORE_KEY = 'exam2_session_v1';
 
-function resumeStore(code, name) {
-  try { sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify({ code, name })); } catch (e) {}
+function resumeStore(code, name, email) {
+  try { sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify({ code, name, email: email || '' })); } catch (e) {}
 }
 function resumeRead() {
   try { return JSON.parse(sessionStorage.getItem(SESSION_STORE_KEY) || 'null'); } catch (e) { return null; }
@@ -319,9 +319,9 @@ async function enterExamView() {
   }, 100);
 }
 
-async function resumeSession(code, name) {
+async function resumeSession(code, name, email) {
   try {
-    const res = await apiPost('validate_code.php', { code, name });
+    const res = await apiPost('validate_code.php', { code, name, email });
     if (!res || !res.ok || !res.session_key) {
       resumeClear();
       return false;
@@ -329,7 +329,7 @@ async function resumeSession(code, name) {
     sessionKey = res.session_key;
     studentName = (res.student && res.student.name) || name;
     remainingSeconds = res.remaining_seconds || EXAM_DURATION_SECONDS;
-    resumeStore((res.student && res.student.code) || code, studentName);
+    resumeStore((res.student && res.student.code) || code, studentName, (res.student && res.student.email) || email || '');
     await enterExamView();
     return true;
   } catch (e) {
@@ -735,11 +735,17 @@ function setLoginStatus(state, msg) {
 async function startExam() {
   const codeInput = document.getElementById('access-code');
   const nameInput = document.getElementById('student-name');
+  const emailInput = document.getElementById('student-email');
   const enteredCode = codeInput.value.trim().toUpperCase();
   const enteredName = nameInput.value.trim();
+  const enteredEmail = emailInput ? emailInput.value.trim() : '';
 
   if (!enteredCode || !enteredName) {
     showModal('Champs requis', 'Veuillez entrer votre code d\'accès et votre nom complet.');
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(enteredEmail)) {
+    showModal('Email requis', 'Veuillez entrer une adresse email valide (elle servira à vous envoyer votre résultat).');
     return;
   }
 
@@ -751,7 +757,8 @@ async function startExam() {
   try {
     const res = await apiPost('validate_code.php', {
       code: enteredCode,
-      name: enteredName
+      name: enteredName,
+      email: enteredEmail
     });
 
     if (!res.ok) {
@@ -765,7 +772,7 @@ async function startExam() {
     sessionKey = res.session_key;
     studentName = res.name || enteredName;
     remainingSeconds = res.remaining_seconds;
-    resumeStore((res.student && res.student.code) || enteredCode, studentName); // restore sou refresh
+    resumeStore((res.student && res.student.code) || enteredCode, studentName, (res.student && res.student.email) || enteredEmail); // restore sou refresh
     await enterExamView();
   } catch (e) {
     console.error(e);
@@ -908,7 +915,7 @@ async function submitExam(autoSubmit) {
 
   if (autoSubmit) {
     document.getElementById('done-msg').textContent =
-      "Le temps imparti est écoulé. Vos réponses ont été soumises automatiquement. Cliquez sur un des boutons ci-dessous pour transmettre vos résultats à l'enseignant.";
+      "Le temps imparti est écoulé. Vos réponses ont été soumises automatiquement. Votre enseignant les corrigera et vous recevrez votre résultat par email.";
   }
 
   /* Nòt automatique sou serveur — retry si rezo a fèbl */
@@ -924,7 +931,7 @@ async function submitExam(autoSubmit) {
 
   if (lastGraded) {
     buildEmailContent(lastGraded.score, lastGraded.detail, subjectiveAnswers);
-    setupSubmitButtons(lastGraded.score, lastGraded.detail, subjectiveAnswers);
+    await saveResultDoc();
   } else if (failEl) {
     failEl.style.display = 'block';
   }
@@ -940,12 +947,31 @@ async function retryScore() {
     const failEl = document.getElementById('score-fail');
     if (failEl) failEl.style.display = 'none';
     document.getElementById('done-msg').textContent =
-      'Vos réponses ont été enregistrées dans la base de données et transmises à l\'enseignant.';
+      'Vos réponses ont été enregistrées. Votre enseignant les corrigera et vous recevrez votre résultat par email.';
     buildEmailContent(lastGraded.score, lastGraded.detail, lastSubjective);
-    setupSubmitButtons(lastGraded.score, lastGraded.detail, lastSubjective);
+    await saveResultDoc();
   } else if (msg) {
     msg.textContent = 'Le serveur ne répond toujours pas. Vérifiez la connexion puis réessayez.';
   }
+}
+
+/* Sove dokiman rezilta a (HTML + tèks) sou sèvè a pou espas pwofesè a.
+   Retry pou rezo fèb. */
+async function saveResultDoc() {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const res = await apiPost('save_result.php', {
+        session_key: sessionKey,
+        html_body: lastEmailHtml,
+        text_body: lastEmailBody
+      });
+      if (res && res.ok) return true;
+    } catch (e) { /* retry */ }
+    await new Promise(r => setTimeout(r, 1500));
+  }
+  const fb = document.getElementById('copy-feedback');
+  if (fb) { fb.textContent = 'Votre copie est enregistrée, mais le détail n\'a pas pu être transmis. Contactez votre enseignant.'; fb.classList.add('show'); }
+  return false;
 }
 
 function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
@@ -980,13 +1006,14 @@ function buildEmailContent(objectiveScore, detail, subjectiveAnswers) {
     body += `${'·'.repeat(60)}\n\n`;
   });
   body += `\n${'═'.repeat(60)}\n`;
-  body += ` NOTE FINALE (à compléter par l'enseignant)\n`;
+  body += ` NOTE FINALE\n`;
   body += `${'═'.repeat(60)}\n`;
-  body += ` Note automatique         : ${objectiveScore} pts / ${autoTotal}\n`;
-  body += ` Note manuelle (à compléter) : _______ pts / ${subjTotal}\n`;
+  body += ` Note automatique (QCM + Multi)     : ${objectiveScore} pts / ${autoTotal}\n`;
+  body += ` Note manuelle (Définir + Exercices) : %%MANUAL%% pts / ${subjTotal}\n`;
   body += ` ───────────────────────────\n`;
-  body += ` NOTE FINALE              : ${objectiveScore} + _______ = _______ pts / ${grandTotal}\n`;
-  body += ` Seuil de r\u00e9ussite        : ${seuil} / ${grandTotal}\n\n`;
+  body += ` NOTE FINALE                        : %%TOTAL%% pts / ${grandTotal}\n`;
+  body += ` Seuil de r\u00e9ussite                  : ${seuil} / ${grandTotal}\n`;
+  body += ` R\u00e9sultat                          : %%RESULT%%\n\n`;
   body += `${'─'.repeat(60)}\n`;
   body += ` Document généré automatiquement — Examen Réseau 2\n`;
 
@@ -1090,10 +1117,11 @@ function buildEmailHtml(objectiveScore, detail, subjectiveAnswers, autoTotal, su
 
   h += `<div style="background:#F3FAF7;border:1px solid #C9E8DC;border-radius:8px;padding:12px 16px;margin-top:14px">`;
   h += `<p style="margin:0 0 6px;font-size:15px"><strong>NOTE FINALE</strong></p>`;
-  h += `<p style="margin:0 0 4px"><strong>Note automatique</strong> : ${objectiveScore} pts / ${autoTotal}</p>`;
-  h += `<p style="margin:0 0 4px"><strong>Note manuelle (à compléter)</strong> : <u>________</u> pts / ${subjTotal}</p>`;
-  h += `<p style="margin:8px 0 4px;border-top:1px dashed #C9E8DC;padding-top:6px"><strong>NOTE FINALE</strong> : ${objectiveScore} + <u>________</u> = <u>________</u> pts / <strong>${grandTotal}</strong></p>`;
-  h += `<p style="margin:0"><strong>Seuil de réussite</strong> : ${seuil} / ${grandTotal}</p>`;
+  h += `<p style="margin:0 0 4px"><strong>Note automatique</strong> (QCM + Multi) : ${objectiveScore} pts / ${autoTotal}</p>`;
+  h += `<p style="margin:0 0 4px"><strong>Note manuelle</strong> (Définir + Exercices) : <strong>%%MANUAL%%</strong> pts / ${subjTotal}</p>`;
+  h += `<p style="margin:8px 0 4px;border-top:1px dashed #C9E8DC;padding-top:6px"><strong>NOTE FINALE</strong> : <strong>%%TOTAL%%</strong> pts / <strong>${grandTotal}</strong></p>`;
+  h += `<p style="margin:0 0 4px"><strong>Seuil de réussite</strong> : ${seuil} / ${grandTotal}</p>`;
+  h += `<p style="margin:0"><strong>Résultat</strong> : <strong style="color:%%RESULT_COLOR%%">%%RESULT%%</strong></p>`;
   h += `</div>`;
 
   h += `<p style="margin:14px 0 0;color:#888;font-size:12px;text-align:center">Document généré automatiquement — Examen Réseau 2</p>`;
@@ -1101,57 +1129,10 @@ function buildEmailHtml(objectiveScore, detail, subjectiveAnswers, autoTotal, su
   return h;
 }
 
-function setupSubmitButtons(objectiveScore, detail, subjectiveAnswers) {
-  const submitBtn = document.getElementById('resend-btn');
-  const copyBtn = document.getElementById('copy-btn');
-
-  // Kache bouton copie a — pa bezwen ankò
-  if (copyBtn) copyBtn.style.display = 'none';
-
-  submitBtn.textContent = 'Envoyer les résultats';
-  submitBtn.onclick = () => sendEmail(objectiveScore, detail, subjectiveAnswers);
-
-  // Voye otomatikman
-  sendEmail(objectiveScore, detail, subjectiveAnswers);
-}
-
-async function sendEmail(objectiveScore, detail, subjectiveAnswers) {
-  const submitBtn = document.getElementById('resend-btn');
-  submitBtn.textContent = 'Envoi en cours...';
-  submitBtn.disabled = true;
-
-  const detailText = detail.join('\n');
-  const subjText = subjectiveAnswers.join('\n\n---\n\n');
-
-  try {
-    await emailjs.send(
-      EMAILJS_SERVICE_ID,
-      EMAILJS_TEMPLATE_ID,
-      {
-        to_email: TEACHER_EMAIL,
-        student_name: studentName,
-        objective_score: objectiveScore,
-        detail: detailText,
-        subjective: subjText,
-        email_body: lastEmailBody,
-        html_body: lastEmailHtml,
-      },
-      EMAILJS_PUBLIC_KEY
-    );
-
-    submitBtn.textContent = '✓ Résultats envoyés';
-    submitBtn.style.background = '#1D9E75';
-    document.getElementById('copy-feedback').textContent = 'Vos résultats ont été envoyés automatiquement à l\'enseignant.';
-    document.getElementById('copy-feedback').classList.add('show');
-
-  } catch (error) {
-    console.error('EmailJS error:', error);
-    submitBtn.textContent = 'Réessayer l\'envoi';
-    submitBtn.disabled = false;
-    document.getElementById('copy-feedback').textContent = 'Erreur d\'envoi — cliquez sur "Réessayer" ou copiez manuellement.';
-    document.getElementById('copy-feedback').classList.add('show');
-  }
-}
+/* ============================================================
+   FIN — Kontni imèl la bati nan save_result.php epi pwofesè a
+   voye l bay etidyan an apre koreksyon (pa gen anvi nan navigatè).
+   ============================================================ */
 
 /* ============================================================
    INITIALISATION GÉNÉRALE
@@ -1161,15 +1142,19 @@ function updateStartBtn() {
   if (!btn) return;
   const code = (document.getElementById('access-code').value || '').trim();
   const name = (document.getElementById('student-name').value || '').trim();
-  btn.disabled = !(code && name);
+  const emailEl = document.getElementById('student-email');
+  const email = emailEl ? (emailEl.value || '').trim() : '';
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  btn.disabled = !(code && name && emailOk);
 }
 
 (async function init() {
-  emailjs.init(EMAILJS_PUBLIC_KEY);
   const codeInput = document.getElementById('access-code');
   const nameInput = document.getElementById('student-name');
+  const emailInput = document.getElementById('student-email');
   if (codeInput) codeInput.addEventListener('input', updateStartBtn);
   if (nameInput) nameInput.addEventListener('input', updateStartBtn);
+  if (emailInput) emailInput.addEventListener('input', updateStartBtn);
   updateStartBtn();
 
   /* Sesyon ki te kòmanse deja (refresh / paj fèmen) → restore li dirèk,
@@ -1180,7 +1165,7 @@ function updateStartBtn() {
     document.getElementById('screen-exam').classList.add('show');
     const loadEl = document.getElementById('session-loading');
     if (loadEl) loadEl.style.display = 'block';
-    const ok = await resumeSession(saved.code, saved.name);
+    const ok = await resumeSession(saved.code, saved.name, saved.email || '');
     if (!ok) {
       document.getElementById('screen-exam').classList.remove('show');
       document.getElementById('screen-intro').style.display = 'block';

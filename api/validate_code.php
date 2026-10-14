@@ -11,6 +11,8 @@ require __DIR__ . '/db.php';
 $in = body_json();
 $code = trim((string)($in['code'] ?? ''));
 $name = trim((string)($in['name'] ?? ''));
+$email = trim((string)($in['email'] ?? ''));
+if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) { $email = ''; }
 
 if ($code === '' || $name === '') {
     json_out(['ok' => false, 'message' => 'Le code et le nom sont obligatoires.'], 422);
@@ -18,7 +20,18 @@ if ($code === '' || $name === '') {
 
 $pdo = db();
 
-$stmt = $pdo->prepare('SELECT id, code, name, is_test FROM students WHERE code = :code');
+/* Asire kolòn `email` egziste nan tablo students */
+try {
+    $chk = $pdo->query(
+        'SELECT COUNT(*) AS c FROM information_schema.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = "students" AND COLUMN_NAME = "email"'
+    );
+    if ((int)$chk->fetch()['c'] === 0) {
+        $pdo->exec('ALTER TABLE students ADD COLUMN email VARCHAR(120) NULL');
+    }
+} catch (Throwable $e) { /* rete pare */ }
+
+$stmt = $pdo->prepare('SELECT id, code, name, is_test, email FROM students WHERE code = :code');
 $stmt->execute([':code' => $code]);
 $student = $stmt->fetch();
 
@@ -30,6 +43,14 @@ if (!$student) {
 if (strcasecmp($student['name'], $name) !== 0) {
     json_out(['ok' => false, 'message' => 'Ce code n\'est pas associé à ce nom. Vous ne pouvez pas utiliser le code d\'un autre étudiant.']);
 }
+
+/* Sove email etidyan an si li bay yon sèl valab */
+if ($email !== '') {
+    $pdo->prepare('UPDATE students SET email = :em WHERE id = :sid')
+        ->execute([':em' => $email, ':sid' => (int)$student['id']]);
+    $student['email'] = $email;
+}
+$studentPayload = ['code' => $student['code'], 'name' => $student['name'], 'email' => (string)($student['email'] ?? '')];
 
 $now = new DateTime();
 $expires = (clone $now)->modify('+' . EXAM_DURATION_MINUTES . ' minutes');
@@ -56,7 +77,7 @@ if ($isTest) {
             'session_key' => $existing['session_key'],
             'expires_at'  => $existing['expires_at'],
             'remaining_seconds' => (new DateTime($existing['expires_at']))->getTimestamp() - $now->getTimestamp(),
-            'student'     => ['code' => $student['code'], 'name' => $student['name']],
+            'student'     => $studentPayload,
         ]);
     }
 
@@ -79,7 +100,7 @@ if ($isTest) {
         'session_key'   => $sessionKey,
         'expires_at'    => $expires->format('Y-m-d H:i:s'),
         'remaining_seconds' => EXAM_DURATION_MINUTES * 60,
-        'student'       => ['code' => $student['code'], 'name' => $student['name']],
+        'student'       => $studentPayload,
     ]);
 }
 
@@ -111,7 +132,7 @@ if ($existing) {
             'session_key' => $existing['session_key'],
             'expires_at'  => $existing['expires_at'],
             'remaining_seconds' => (new DateTime($existing['expires_at']))->getTimestamp() - $now->getTimestamp(),
-            'student'     => ['code' => $student['code'], 'name' => $student['name']],
+            'student'     => $studentPayload,
         ]);
     }
     $pdo->prepare('DELETE FROM exam_sessions WHERE id = :id')->execute([':id' => $existing['id']]);
@@ -135,5 +156,5 @@ json_out([
     'session_key' => $sessionKey,
     'expires_at'  => $expires->format('Y-m-d H:i:s'),
     'remaining_seconds' => EXAM_DURATION_MINUTES * 60,
-    'student'     => ['code' => $student['code'], 'name' => $student['name']],
+    'student'     => $studentPayload,
 ]);
