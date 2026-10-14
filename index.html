@@ -56,6 +56,13 @@
   }
   #boot-overlay .boot-txt { color: #6b7c8c; font-size: 14px; font-family: inherit; }
   @keyframes bootspin { to { transform: rotate(360deg); } }
+
+  #logout-btn {
+    margin-left: 12px; background: #fff; color: #b23434;
+    border: 1px solid #e6b8b8; border-radius: 6px;
+    padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  #logout-btn:hover { background: #fdecec; }
 </style>
 </head>
 <body>
@@ -122,6 +129,7 @@
     <div class="header-right">
       <span id="save-status" class="save-status">—</span>
       <span id="timer">02:00:00</span>
+      <button id="logout-btn" style="display:none" onclick="logoutExam()">Déconnexion</button>
     </div>
   </div>
 
@@ -190,6 +198,6 @@
   </div>
 </div>
 
-<script src="js/exam.js?v=20261014c"></script>
+<script src="js/exam.js?v=20261014d"></script>
 </body>
 </html>

@@ -12,6 +12,7 @@ const EXAM_DURATION_SECONDS = 120 * 60; // sekou si server pa reponn
 /* Sesyon aktyèl la (gade ak PHP validation) */
 let sessionKey = null;
 let remainingSeconds = EXAM_DURATION_SECONDS;
+let isTestAccount = false; // sèlman kont tès (is_test=1) wè bouton Dekoneksyon an
 let saveTimer = null;
 let isSaving = false;
 
@@ -291,12 +292,13 @@ document.addEventListener('visibilitychange', () => {
    ============================================================ */
 const SESSION_STORE_KEY = 'exam2_session_v1';
 
-function resumeStore(code, name, email, sk, rem) {
+function resumeStore(code, name, email, sk, rem, test) {
   try {
     sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify({
       code, name, email: email || '',
       sk: sk || '',
-      rem: (typeof rem === 'number' ? rem : null)
+      rem: (typeof rem === 'number' ? rem : null),
+      test: test === true
     }));
   } catch (e) {}
 }
@@ -363,15 +365,31 @@ async function enterExamView() {
   renderSection(currentSectionIdx);
   startTimer();
   setSaveStatus('saved', 'Enregistré');
+  applyLogoutVisibility();
   setTimeout(() => {
     const card = document.querySelector('#q-container .q-card');
     if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 100);
 }
 
+/* Bouton Dekoneksyon : vizib SÈLMAN pou kont tès la (is_test=1) */
+function applyLogoutVisibility() {
+  const btn = document.getElementById('logout-btn');
+  if (!btn) return;
+  btn.style.display = isTestAccount ? 'inline-block' : 'none';
+}
+
+/* Dekonekte : sovgade, efase sesyon an, epi retounen sou paj koneksyon an */
+function logoutExam() {
+  if (!confirm('Se déconnecter et revenir à la page de connexion ?')) return;
+  try { finalFlush(); } catch (e) {}
+  try { examSubmitted = true; } catch (e) {}
+  resumeClear();
+  location.reload();
+}
+
 /* Retire spinner an chajman an : li rete vizib omwen ~500ms pou nou wè refresh la */
-function hideBootOverlay() {
-  const el = document.getElementById('boot-overlay');
+function hideBootOverlay() {  const el = document.getElementById('boot-overlay');
   if (!el) return;
   const elapsed = Date.now() - (window.__bootT0 || 0);
   const wait = Math.max(0, 500 - elapsed);
@@ -396,6 +414,7 @@ function showExamInstant() {
   renderSection(currentSectionIdx);
   startTimer();
   setSaveStatus('saved', 'Enregistré');
+  applyLogoutVisibility();
 }
 
 /* Senkronizasyon an aryè-plan : konfime sesyon an ak sèvè a san bloke ekran */
@@ -405,7 +424,8 @@ async function syncSessionInBackground(saved) {
     if (!res || !res.ok || !res.session_key) return;
     sessionKey = res.session_key;
     if (res.remaining_seconds) remainingSeconds = res.remaining_seconds;
-    resumeStore(saved.code, studentName, saved.email || '', sessionKey, remainingSeconds);
+    if (res.is_test !== undefined) { isTestAccount = res.is_test === true; applyLogoutVisibility(); }
+    resumeStore(saved.code, studentName, saved.email || '', sessionKey, remainingSeconds, isTestAccount);
     /* Si kachèt lokal la vid (pa gen repons), pran sa ki sou sèvè a epi re-afiche */
     if (Object.keys(userAnswers).length === 0) {
       await loadSavedAnswers();
@@ -424,7 +444,8 @@ async function resumeSession(code, name, email) {
     sessionKey = res.session_key;
     studentName = (res.student && res.student.name) || name;
     remainingSeconds = res.remaining_seconds || EXAM_DURATION_SECONDS;
-    resumeStore((res.student && res.student.code) || code, studentName, (res.student && res.student.email) || email || '', sessionKey, remainingSeconds);
+    isTestAccount = res.is_test === true;
+    resumeStore((res.student && res.student.code) || code, studentName, (res.student && res.student.email) || email || '', sessionKey, remainingSeconds, isTestAccount);
     await enterExamView();
     return true;
   } catch (e) {
@@ -897,7 +918,8 @@ async function startExam() {
     sessionKey = res.session_key;
     studentName = res.name || enteredName;
     remainingSeconds = res.remaining_seconds;
-    resumeStore((res.student && res.student.code) || enteredCode, studentName, (res.student && res.student.email) || enteredEmail, sessionKey, remainingSeconds); // restore sou refresh
+    isTestAccount = res.is_test === true;
+    resumeStore((res.student && res.student.code) || enteredCode, studentName, (res.student && res.student.email) || enteredEmail, sessionKey, remainingSeconds, isTestAccount); // restore sou refresh
     saveSectionIdx(0); // nouvo kòmansman : toujou kòmanse nan seksyon A
     await enterExamView();
   } catch (e) {
@@ -1293,6 +1315,7 @@ function updateStartBtn() {
     sessionKey = saved.sk;
     studentName = saved.name;
     remainingSeconds = (typeof saved.rem === 'number' && saved.rem > 0) ? saved.rem : EXAM_DURATION_SECONDS;
+    isTestAccount = saved.test === true;
     userAnswers = answersCacheRead();
     currentSectionIdx = readSectionIdx();
     showExamInstant();
