@@ -204,6 +204,8 @@ function setSaveStatus(state, msg) {
 
 function scheduleSave() {
   if (!sessionKey || examSubmitted) return;
+  answersCacheWrite();
+  touchResumeStore();
   if (saveTimer) clearTimeout(saveTimer);
   setSaveStatus('saving');
   saveTimer = setTimeout(saveAnswers, 1200);
@@ -226,6 +228,8 @@ async function saveAnswers() {
     if (res.ok) {
       setSaveStatus('saved');
       if (res.remaining_seconds) remainingSeconds = res.remaining_seconds;
+      answersCacheWrite();
+      touchResumeStore();
       if (res.submitted) { location.reload(); return; }
     } else if (res.expired) {
       showExpired();
@@ -263,6 +267,8 @@ async function loadSavedAnswers() {
 function finalFlush() {
   if (!sessionKey || examSubmitted) return;
   try {
+    answersCacheWrite();
+    touchResumeStore();
     const blob = new Blob([JSON.stringify({ session_key: sessionKey, answers: userAnswers })], { type: 'text/plain;charset=UTF-8' });
     let sent = false;
     try { sent = navigator.sendBeacon('api/save_answers.php', blob); } catch (e) { sent = false; }
@@ -285,16 +291,43 @@ document.addEventListener('visibilitychange', () => {
    ============================================================ */
 const SESSION_STORE_KEY = 'exam2_session_v1';
 
-function resumeStore(code, name, email) {
-  try { sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify({ code, name, email: email || '' })); } catch (e) {}
+function resumeStore(code, name, email, sk, rem) {
+  try {
+    sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify({
+      code, name, email: email || '',
+      sk: sk || '',
+      rem: (typeof rem === 'number' ? rem : null)
+    }));
+  } catch (e) {}
 }
 function resumeRead() {
   try { return JSON.parse(sessionStorage.getItem(SESSION_STORE_KEY) || 'null'); } catch (e) { return null; }
 }
+function touchResumeStore() {
+  try {
+    const cur = resumeRead();
+    if (!cur) return;
+    if (sessionKey) cur.sk = sessionKey;
+    if (typeof remainingSeconds === 'number') cur.rem = remainingSeconds;
+    sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify(cur));
+  } catch (e) {}
+}
 function resumeClear() {
   try { sessionStorage.removeItem(SESSION_STORE_KEY); } catch (e) {}
   clearSectionIdx();
+  answersCacheClear();
 }
+
+/* Kachèt lokal repons yo : pèmèt afiche seksyon an TOUSWIT sou refresh,
+   san rete rezo, epi senkronize ak sèvè a an aryè-plan. */
+const ANSWERS_STORE_KEY = 'exam2_answers_v1';
+function answersCacheWrite() {
+  try { sessionStorage.setItem(ANSWERS_STORE_KEY, JSON.stringify(userAnswers || {})); } catch (e) {}
+}
+function answersCacheRead() {
+  try { return JSON.parse(sessionStorage.getItem(ANSWERS_STORE_KEY) || '{}') || {}; } catch (e) { return {}; }
+}
+function answersCacheClear() { try { sessionStorage.removeItem(ANSWERS_STORE_KEY); } catch (e) {} }
 
 /* Seksyon aktyèl la : pou refresh rete sou menm seksyon an */
 const SECTION_STORE_KEY = 'exam2_section_v1';
@@ -336,6 +369,39 @@ async function enterExamView() {
   }, 100);
 }
 
+/* Afiche egzamen an TOUSWIT depi kachèt lokal la (san rete rezo) */
+function showExamInstant() {
+  const loadEl = document.getElementById('session-loading');
+  if (loadEl) loadEl.style.display = 'none';
+  document.getElementById('student-label').textContent = studentName;
+  document.getElementById('screen-intro').style.display = 'none';
+  document.getElementById('screen-exam').classList.add('show');
+  document.getElementById('screen-summary').style.display = 'none';
+  document.getElementById('q-section-label').style.display = 'block';
+  document.getElementById('q-container').style.display = 'block';
+  document.getElementById('nav-zone').style.display = 'block';
+  document.documentElement.classList.remove('resume-boot');
+  renderSection(currentSectionIdx);
+  startTimer();
+  setSaveStatus('saved', 'Enregistré');
+}
+
+/* Senkronizasyon an aryè-plan : konfime sesyon an ak sèvè a san bloke ekran */
+async function syncSessionInBackground(saved) {
+  try {
+    const res = await apiPost('validate_code.php', { code: saved.code, name: saved.name, email: saved.email || '' });
+    if (!res || !res.ok || !res.session_key) return;
+    sessionKey = res.session_key;
+    if (res.remaining_seconds) remainingSeconds = res.remaining_seconds;
+    resumeStore(saved.code, studentName, saved.email || '', sessionKey, remainingSeconds);
+    /* Si kachèt lokal la vid (pa gen repons), pran sa ki sou sèvè a epi re-afiche */
+    if (Object.keys(userAnswers).length === 0) {
+      await loadSavedAnswers();
+      renderSection(currentSectionIdx);
+    }
+  } catch (e) { /* silansye */ }
+}
+
 async function resumeSession(code, name, email) {
   try {
     const res = await apiPost('validate_code.php', { code, name, email });
@@ -346,7 +412,7 @@ async function resumeSession(code, name, email) {
     sessionKey = res.session_key;
     studentName = (res.student && res.student.name) || name;
     remainingSeconds = res.remaining_seconds || EXAM_DURATION_SECONDS;
-    resumeStore((res.student && res.student.code) || code, studentName, (res.student && res.student.email) || email || '');
+    resumeStore((res.student && res.student.code) || code, studentName, (res.student && res.student.email) || email || '', sessionKey, remainingSeconds);
     await enterExamView();
     return true;
   } catch (e) {
@@ -819,7 +885,7 @@ async function startExam() {
     sessionKey = res.session_key;
     studentName = res.name || enteredName;
     remainingSeconds = res.remaining_seconds;
-    resumeStore((res.student && res.student.code) || enteredCode, studentName, (res.student && res.student.email) || enteredEmail); // restore sou refresh
+    resumeStore((res.student && res.student.code) || enteredCode, studentName, (res.student && res.student.email) || enteredEmail, sessionKey, remainingSeconds); // restore sou refresh
     saveSectionIdx(0); // nouvo kòmansman : toujou kòmanse nan seksyon A
     await enterExamView();
   } catch (e) {
@@ -1208,9 +1274,19 @@ function updateStartBtn() {
   /* Sesyon ki te kòmanse deja (refresh / paj fèmen) → restore li dirèk,
      san paj kòmansman an pa flote */
   const saved = resumeRead();
-  if (saved && saved.code && saved.name) {
-    /* Mete ekran chajman an an plas TOUSWIT (senkron), pou pa gen okenn
-       flash: ni ekran kòmansman an, ni yon lòt seksyon pa parèt. */
+  if (saved && saved.code && saved.name && saved.sk) {
+    /* CHEMIN RAPID : nou gen session_key + repons an kachèt →
+       afiche egzamen an TOUSWIT, san rete rezo, san "Veuillez patienter".
+       Senkronizasyon ak sèvè a fèt an aryè-plan. */
+    sessionKey = saved.sk;
+    studentName = saved.name;
+    remainingSeconds = (typeof saved.rem === 'number' && saved.rem > 0) ? saved.rem : EXAM_DURATION_SECONDS;
+    userAnswers = answersCacheRead();
+    currentSectionIdx = readSectionIdx();
+    showExamInstant();
+    syncSessionInBackground(saved);
+  } else if (saved && saved.code && saved.name) {
+    /* Premye fwa (pa gen session_key an kachèt) : ansyen chemin ak loader */
     document.getElementById('screen-intro').style.display = 'none';
     document.getElementById('screen-exam').classList.add('show');
     document.getElementById('q-section-label').style.display = 'none';
