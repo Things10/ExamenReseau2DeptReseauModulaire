@@ -409,17 +409,16 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
           <td class="num"><?= number_format($r['auto'], 2, '.', ' ') ?></td>
           <td class="num">
             <input type="number" step="0.25" min="0" max="30" name="manual"
-                   id="man-<?= esc($sk) ?>" value="<?= esc(number_format($has ? $r['manual'] : 0, 2, '.', '')) ?>"
+                   id="man-<?= esc($sk) ?>" value="" placeholder="0"
                    oninput="upd('<?= esc($sk) ?>', <?= $r['auto'] ?>)">
           </td>
           <td>
             <input type="email" id="eml-<?= esc($sk) ?>" value="<?= esc($r['email'] ?? '') ?>"
                    placeholder="email@etudiant.com">
           </td>
-          <td class="tot num" id="tot-<?= esc($sk) ?>"><?= number_format($r['auto'] + ($has ? $r['manual'] : 0), 2, '.', ' ') ?> / 50</td>
+          <td class="tot num" id="tot-<?= esc($sk) ?>"><?= number_format($r['auto'], 2, '.', ' ') ?> / 50</td>
           <td class="num" id="st-<?= esc($sk) ?>">
-            <?php $t0 = $r['auto'] + ($has ? $r['manual'] : 0); ?>
-            <span class="<?= $t0 >= SEUIL ? 'ok' : 'ko' ?>"><?= $t0 >= SEUIL ? 'Réussi' : 'Échec' ?></span>
+            <span class="<?= $r['auto'] >= SEUIL ? 'ok' : 'ko' ?>"><?= $r['auto'] >= SEUIL ? 'Réussi' : 'Échec' ?></span>
           </td>
           <td>
             <div class="actions">
