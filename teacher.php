@@ -310,17 +310,25 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
   .head .sub { font-size:13px; opacity:.9; }
   .wrap { max-width:1180px; margin:22px auto; padding:0 16px; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px; }
-  table { width:100%; border-collapse:collapse; font-size:13.5px; }
-  th, td { border-bottom:1px solid var(--line); padding:8px 8px; text-align:left; vertical-align:middle; }
-  th { background:#F0F5F2; font-size:12px; text-transform:uppercase; letter-spacing:.3px; color:var(--muted); }
-  input[type=number], input[type=email], input[type=password], input[type=text] { font-size:14px; padding:6px 8px; border:1px solid #C9D8D2; border-radius:6px; width:90px; }
-  input[type=email], input[type=text] { width:200px; }
+  .tbl-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; min-width:960px; }
+  th, td { border-bottom:1px solid var(--line); padding:11px 10px; text-align:left; vertical-align:middle; }
+  th { background:#F0F5F2; font-size:12px; text-transform:uppercase; letter-spacing:.3px; color:var(--muted); white-space:nowrap; }
+  td.num, th.num { text-align:center; }
+  tbody tr:hover { background:#FAFCFB; }
+  input[type=number], input[type=email], input[type=password], input[type=text] { font-size:14px; padding:7px 9px; border:1px solid #C9D8D2; border-radius:6px; height:36px; }
+  input[type=number] { width:80px; text-align:center; }
+  input[type=email], input[type=text] { width:220px; }
+  input[type=number]:focus, input[type=email]:focus, input[type=text]:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(29,158,117,.15); }
   .btn { background:var(--green); color:#fff; border:0; border-radius:7px; padding:8px 14px; font-size:13.5px; cursor:pointer; font-weight:bold; }
   .btn:hover { background:var(--green-dk); }
   .btn:disabled { opacity:.6; cursor:default; }
   .btn-out { background:none; border:1px solid rgba(255,255,255,.7); color:#fff; border-radius:7px; padding:7px 14px; font-size:13px; cursor:pointer; text-decoration:none; }
   .btn-alt { background:#2E6B82; }
   .btn-alt:hover { background:#245366; }
+  .actions { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .actions .btn { white-space:nowrap; padding:8px 12px; font-size:13px; }
+  .actions .meta { margin:0; }
   .tot { font-weight:bold; font-size:15px; }
   .ok { color:#0B6E4F; font-weight:bold; }
   .ko { color:#B3402E; font-weight:bold; }
@@ -382,11 +390,12 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
 
   <div class="card">
     <p class="meta"><?= count($rows) ?> soumission(s). Cliquez sur « Voir les réponses » pour lire la copie de l'élève (sections C et D, tableaux), entrez la note manuelle, puis cliquez sur « Enregistrer et Envoyer » : la note est sauvegardée et l'email de résultat complet part vers l'élève.</p>
+    <div class="tbl-wrap">
     <table>
       <thead>
         <tr>
-          <th>Code</th><th>Étudiant</th><th>Note auto (/20)</th>
-          <th>Note manuelle (/30)</th><th>Email étudiant</th><th>Total (/50)</th><th>État</th><th>Actions</th>
+          <th>Code</th><th>Étudiant</th><th class="num">Note auto (/20)</th>
+          <th class="num">Note manuelle (/30)</th><th>Email étudiant</th><th class="num">Total (/50)</th><th class="num">État</th><th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -397,30 +406,31 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
         <tr>
           <td><code><?= esc($r['code']) ?></code> <?= ((int)$r['is_test'] === 1) ? '<span class="tag">TEST</span>' : '' ?></td>
           <td><?= esc($r['name']) ?></td>
-          <td><?= number_format($r['auto'], 2, '.', ' ') ?></td>
-          <td>
+          <td class="num"><?= number_format($r['auto'], 2, '.', ' ') ?></td>
+          <td class="num">
             <input type="number" step="0.25" min="0" max="30" name="manual"
-                   id="man-<?= esc($sk) ?>" value="<?= $has ? esc(number_format($r['manual'], 2, '.', '')) : '' ?>"
+                   id="man-<?= esc($sk) ?>" value="<?= esc(number_format($has ? $r['manual'] : 0, 2, '.', '')) ?>"
                    oninput="upd('<?= esc($sk) ?>', <?= $r['auto'] ?>)">
           </td>
           <td>
             <input type="email" id="eml-<?= esc($sk) ?>" value="<?= esc($r['email'] ?? '') ?>"
-                   placeholder="email@etudiant.com" style="width:200px">
+                   placeholder="email@etudiant.com">
           </td>
-          <td class="tot" id="tot-<?= esc($sk) ?>"><?= $has ? number_format($total, 2, '.', ' ') : '—' ?> / 50</td>
-          <td id="st-<?= esc($sk) ?>">
-            <?php if ($has): ?>
-              <span class="<?= $total >= SEUIL ? 'ok' : 'ko' ?>"><?= $total >= SEUIL ? 'Réussi' : 'Échec' ?></span>
-            <?php else: ?>—<?php endif; ?>
+          <td class="tot num" id="tot-<?= esc($sk) ?>"><?= number_format($r['auto'] + ($has ? $r['manual'] : 0), 2, '.', ' ') ?> / 50</td>
+          <td class="num" id="st-<?= esc($sk) ?>">
+            <?php $t0 = $r['auto'] + ($has ? $r['manual'] : 0); ?>
+            <span class="<?= $t0 >= SEUIL ? 'ok' : 'ko' ?>"><?= $t0 >= SEUIL ? 'Réussi' : 'Échec' ?></span>
           </td>
           <td>
-            <button type="button" class="btn" onclick="saveAndSend('<?= esc($sk) ?>', <?= $r['auto'] ?>, '<?= esc(addslashes($r['name'])) ?>', this)">Enregistrer et Envoyer</button>
-            <?php if ($r['has_doc']): ?>
-              <button type="button" class="btn btn-alt" style="margin-left:6px" onclick="toggleDoc('<?= esc($sk) ?>')">Voir les réponses</button>
-            <?php else: ?>
-              <span class="meta" style="margin-left:6px">(copie non transmise)</span>
-            <?php endif; ?>
-            <button type="button" class="btn" style="background:#8A9A95;margin-left:6px;padding:7px 11px" onclick="clearOne('<?= esc($sk) ?>')">Effacer</button>
+            <div class="actions">
+              <button type="button" class="btn" onclick="saveAndSend('<?= esc($sk) ?>', <?= $r['auto'] ?>, '<?= esc(addslashes($r['name'])) ?>', this)">Enregistrer et Envoyer</button>
+              <?php if ($r['has_doc']): ?>
+                <button type="button" class="btn btn-alt" onclick="toggleDoc('<?= esc($sk) ?>')">Voir les réponses</button>
+              <?php else: ?>
+                <span class="meta">(copie non transmise)</span>
+              <?php endif; ?>
+              <button type="button" class="btn" style="background:#8A9A95" onclick="clearOne('<?= esc($sk) ?>')">Effacer</button>
+            </div>
           </td>
         </tr>
         <tr class="docbox" id="docrow-<?= esc($sk) ?>">
@@ -429,6 +439,7 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
       <?php endforeach; ?>
       </tbody>
     </table>
+    </div>
   </div>
 
   <script>
