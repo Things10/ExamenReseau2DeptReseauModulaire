@@ -6,11 +6,12 @@
    ============================================================ */
 declare(strict_types=1);
 
-define('DB_HOST', '127.0.0.1');
-define('DB_NAME', 'examen_reseau2');
-define('DB_USER', 'root');
-define('DB_PASS', '');   // XAMPP/MariaDB default = pa gen paswòd
+define('DB_HOST', 'sql103.infinityfree.com');
+define('DB_NAME', 'if0_43159330_exam_reseau2');
+define('DB_USER', 'if0_43159330');
+define('DB_PASS', 'wwEfIPsImfOn');
 define('EXAM_DURATION_MINUTES', 120);
+define('TEACHER_USER', 'steven10');     // non itilizatè Espace enseignant (teacher.php)
 define('TEACHER_PASS', 'reseau2026');   // paswòd Espace enseignant (teacher.php)
 define('TEACHER_EMAIL', 'stevengauchier@gmail.com'); // imèl pwofesè a (rapò yo)
 

@@ -23,6 +23,7 @@ define('GRAND_TOTAL', AUTO_TOTAL + SUBJ_TOTAL);                        // 50 pts
 define('SEUIL', 33);
 
 $TEACHER_EMAIL = defined('TEACHER_EMAIL') ? TEACHER_EMAIL : 'stevengauchier@gmail.com';
+$TEACHER_USER  = defined('TEACHER_USER') ? TEACHER_USER : 'steven10';
 
 function esc(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 
@@ -135,11 +136,13 @@ $error = '';
 
 /* -- Konekte -- */
 if (!$auth && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login') {
-    if (hash_equals(TEACHER_PASS, (string)($_POST['pass'] ?? ''))) {
+    $okUser = hash_equals($TEACHER_USER, (string)($_POST['user'] ?? ''));
+    $okPass = hash_equals(TEACHER_PASS, (string)($_POST['pass'] ?? ''));
+    if ($okUser && $okPass) {
         $_SESSION['teacher'] = 1;
         header('Location: teacher.php'); exit;
     }
-    $error = 'Mot de passe incorrect.';
+    $error = 'Identifiant ou mot de passe incorrect.';
 }
 
 /* ============================================================
@@ -365,8 +368,10 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
   <form class="card login" method="post" action="teacher.php">
     <h2>Connexion enseignant</h2>
     <?php if ($error !== ''): ?><div class="err"><?= esc($error) ?></div><?php endif; ?>
-    <label for="pass">Code d'accès enseignant</label>
-    <input type="text" id="pass" name="pass" autocomplete="off" required>
+    <label for="user">Nom d'utilisateur</label>
+    <input type="text" id="user" name="user" autocomplete="username" required autofocus>
+    <label for="pass" style="margin-top:12px">Mot de passe</label>
+    <input type="password" id="pass" name="pass" autocomplete="current-password" required>
     <input type="hidden" name="action" value="login">
     <button type="submit" class="btn">Se connecter</button>
   </form>
