@@ -196,6 +196,37 @@ if ($auth && ($_GET['action'] ?? '') === 'report') {
     exit;
 }
 
+/* ============================================================
+   EFASE SÈSYON TÈS (youn oswa tout) — pou rekòmanse pwòp
+   - teacher.php?action=clearsub&sk=SESSION_KEY  -> yon sèl elèv
+   - teacher.php?action=clearall                 -> tout soumisyon yo
+   ============================================================ */
+function delete_session_data(PDO $pdo, int $sessionId, string $sessionKey): void {
+    $pdo->prepare('DELETE FROM answers WHERE session_id = :id')->execute([':id' => $sessionId]);
+    $pdo->prepare('DELETE FROM grades WHERE session_key = :sk')->execute([':sk' => $sessionKey]);
+    $pdo->prepare('DELETE FROM exam_results WHERE session_key = :sk')->execute([':sk' => $sessionKey]);
+    $pdo->prepare('DELETE FROM exam_sessions WHERE id = :id')->execute([':id' => $sessionId]);
+}
+
+if ($auth && ($_GET['action'] ?? '') === 'clearsub') {
+    $sk = trim((string)($_GET['sk'] ?? ''));
+    $n = 0;
+    if ($sk !== '') {
+        $st = $pdo->prepare('SELECT id, session_key FROM exam_sessions WHERE session_key = :sk');
+        $st->execute([':sk' => $sk]);
+        if ($s = $st->fetch()) { delete_session_data($pdo, (int)$s['id'], $s['session_key']); $n = 1; }
+    }
+    header('Location: teacher.php?cleared=' . $n); exit;
+}
+
+if ($auth && ($_GET['action'] ?? '') === 'clearall') {
+    $n = 0;
+    foreach ($pdo->query('SELECT id, session_key FROM exam_sessions')->fetchAll() as $s) {
+        delete_session_data($pdo, (int)$s['id'], $s['session_key']); $n++;
+    }
+    header('Location: teacher.php?cleared=' . $n); exit;
+}
+
 /* -- Sove nòt manyèl + email (AJAX → JSON) -- */
 if ($auth && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save') {
     header('Content-Type: application/json; charset=utf-8');
@@ -336,10 +367,14 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
   <?php if (isset($_GET['saved'])): ?>
     <div class="flash">Enregistrement réussi.</div>
   <?php endif; ?>
+  <?php if (isset($_GET['cleared'])): ?>
+    <div class="flash"><?= (int)$_GET['cleared'] ?> test(s) / soumission(s) effacé(s).</div>
+  <?php endif; ?>
 
   <div class="toolbar">
     <button type="button" class="btn btn-alt" onclick="sendReport()">Envoyer le rapport par email</button>
     <a class="btn btn-alt" style="text-decoration:none;display:inline-block" href="teacher.php?action=report">Télécharger le rapport Word (.doc)</a>
+    <button type="button" class="btn" style="background:#B3402E" onclick="clearAll()">Effacer tous les tests</button>
     <span class="spacer"></span>
     <button type="button" class="btn" style="background:#6B7A75" onclick="location.reload()">Rafraîchir</button>
   </div>
@@ -385,6 +420,7 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
             <?php else: ?>
               <span class="meta" style="margin-left:6px">(copie non transmise)</span>
             <?php endif; ?>
+            <button type="button" class="btn" style="background:#8A9A95;margin-left:6px;padding:7px 11px" onclick="clearOne('<?= esc($sk) ?>')">Effacer</button>
           </td>
         </tr>
         <tr class="docbox" id="docrow-<?= esc($sk) ?>">
@@ -426,6 +462,16 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
       const total = auto + m;
       totEl.textContent = fmt(total) + ' / 50';
       stEl.innerHTML = total >= SEUIL ? '<span class="ok">Réussi</span>' : '<span class="ko">Échec</span>';
+    }
+
+    function clearAll() {
+      if (!confirm('Effacer TOUTES les soumissions/tests ? Cette action est irréversible.')) return;
+      location.href = 'teacher.php?action=clearall';
+    }
+
+    function clearOne(sk) {
+      if (!confirm('Effacer la soumission de cet étudiant ? Cette action est irréversible.')) return;
+      location.href = 'teacher.php?action=clearsub&sk=' + encodeURIComponent(sk);
     }
 
     function toggleDoc(sk) {
