@@ -382,7 +382,6 @@ function applyLogoutVisibility() {
 
 /* Dekonekte : sovgade, efase sesyon an, epi retounen sou paj koneksyon an */
 async function logoutExam() {
-  if (!confirm('Se déconnecter et revenir à la page de connexion ?')) return;
   examSubmitted = true; // anpeche sove ankò pandan dekonneksyon an
   if (timerInterval) clearInterval(timerInterval);
   if (syncTimerInterval) clearInterval(syncTimerInterval);
