@@ -12,6 +12,7 @@ const EXAM_DURATION_SECONDS = 120 * 60; // sekou si server pa reponn
 /* Sesyon aktyèl la (gade ak PHP validation) */
 let sessionKey = null;
 let remainingSeconds = EXAM_DURATION_SECONDS;
+let examEndsAt = 0; // lè egzak (ms) egzamen an fini — fè kwonometre a estab
 let isTestAccount = false; // sèlman kont tès (is_test=1) wè bouton Dekoneksyon an
 let saveTimer = null;
 let isSaving = false;
@@ -228,7 +229,7 @@ async function saveAnswers() {
     });
     if (res.ok) {
       setSaveStatus('saved');
-      if (res.remaining_seconds) remainingSeconds = res.remaining_seconds;
+      if (res.remaining_seconds) setRemaining(res.remaining_seconds);
       answersCacheWrite();
       touchResumeStore();
       if (res.submitted) { location.reload(); return; }
@@ -255,7 +256,7 @@ async function loadSavedAnswers() {
         userAnswers[parseInt(k, 10)] = (typeof a === 'object' && a !== null) ? a : (Array.isArray(a) ? a : String(a ?? ''));
       });
     }
-    if (res.remaining_seconds) remainingSeconds = res.remaining_seconds;
+    if (res.remaining_seconds) setRemaining(res.remaining_seconds);
     if (res.submitted) { location.reload(); return; }
   } catch (e) { /* silansye */ }
 }
@@ -380,10 +381,13 @@ function applyLogoutVisibility() {
 }
 
 /* Dekonekte : sovgade, efase sesyon an, epi retounen sou paj koneksyon an */
-function logoutExam() {
+async function logoutExam() {
   if (!confirm('Se déconnecter et revenir à la page de connexion ?')) return;
-  try { finalFlush(); } catch (e) {}
-  try { examSubmitted = true; } catch (e) {}
+  examSubmitted = true; // anpeche sove ankò pandan dekonneksyon an
+  if (timerInterval) clearInterval(timerInterval);
+  if (syncTimerInterval) clearInterval(syncTimerInterval);
+  /* Kont tès : efase sesyon an sou sèvè a → pwochen koneksyon = 120 min fre */
+  try { if (sessionKey) await apiPost('logout.php', { session_key: sessionKey }); } catch (e) {}
   resumeClear();
   location.reload();
 }
@@ -423,7 +427,7 @@ async function syncSessionInBackground(saved) {
     const res = await apiPost('validate_code.php', { code: saved.code, name: saved.name, email: saved.email || '' });
     if (!res || !res.ok || !res.session_key) return;
     sessionKey = res.session_key;
-    if (res.remaining_seconds) remainingSeconds = res.remaining_seconds;
+    if (res.remaining_seconds) setRemaining(res.remaining_seconds);
     if (res.is_test !== undefined) { isTestAccount = res.is_test === true; applyLogoutVisibility(); }
     resumeStore(saved.code, studentName, saved.email || '', sessionKey, remainingSeconds, isTestAccount);
     /* Si kachèt lokal la vid (pa gen repons), pran sa ki sou sèvè a epi re-afiche */
@@ -443,7 +447,7 @@ async function resumeSession(code, name, email) {
     }
     sessionKey = res.session_key;
     studentName = (res.student && res.student.name) || name;
-    remainingSeconds = res.remaining_seconds || EXAM_DURATION_SECONDS;
+    setRemaining(res.remaining_seconds || EXAM_DURATION_SECONDS);
     isTestAccount = res.is_test === true;
     resumeStore((res.student && res.student.code) || code, studentName, (res.student && res.student.email) || email || '', sessionKey, remainingSeconds, isTestAccount);
     await enterExamView();
@@ -917,7 +921,7 @@ async function startExam() {
 
     sessionKey = res.session_key;
     studentName = res.name || enteredName;
-    remainingSeconds = res.remaining_seconds;
+    setRemaining(res.remaining_seconds);
     isTestAccount = res.is_test === true;
     resumeStore((res.student && res.student.code) || enteredCode, studentName, (res.student && res.student.email) || enteredEmail, sessionKey, remainingSeconds, isTestAccount); // restore sou refresh
     saveSectionIdx(0); // nouvo kòmansman : toujou kòmanse nan seksyon A
@@ -942,13 +946,29 @@ async function startExam() {
    CHRONOMÈTRE
    ============================================================ */
 function startTimer() {
+  /* Kwonometre a baze sou yon dat fini (deadline), pa sou yon kontè ki desann :
+     konsa li rete egzak menm si tab la sispann oswa paj la refresh. */
+  if (!examEndsAt || examEndsAt <= Date.now()) {
+    examEndsAt = Date.now() + remainingSeconds * 1000;
+  }
+  remainingSeconds = Math.max(0, Math.round((examEndsAt - Date.now()) / 1000));
   updateTimerDisplay();
+  if (timerInterval) clearInterval(timerInterval);
   timerInterval = setInterval(() => {
-    remainingSeconds--;
+    remainingSeconds = Math.max(0, Math.round((examEndsAt - Date.now()) / 1000));
     updateTimerDisplay();
     if (remainingSeconds <= 0) { clearInterval(timerInterval); submitExam(true); }
   }, 1000);
+  if (syncTimerInterval) clearInterval(syncTimerInterval);
   syncTimerInterval = setInterval(() => { scheduleSave(); }, 30000);
+}
+
+/* Fikse tan ki rete a epi rekalkile deadline a (sèvè a se sous verite a) */
+function setRemaining(sec) {
+  const s = Number(sec);
+  if (!isFinite(s) || s < 0) return;
+  remainingSeconds = Math.round(s);
+  examEndsAt = Date.now() + remainingSeconds * 1000;
 }
 
 function updateTimerDisplay() {
@@ -1314,7 +1334,7 @@ function updateStartBtn() {
        Senkronizasyon ak sèvè a fèt an aryè-plan. */
     sessionKey = saved.sk;
     studentName = saved.name;
-    remainingSeconds = (typeof saved.rem === 'number' && saved.rem > 0) ? saved.rem : EXAM_DURATION_SECONDS;
+    setRemaining((typeof saved.rem === 'number' && saved.rem > 0) ? saved.rem : EXAM_DURATION_SECONDS);
     isTestAccount = saved.test === true;
     userAnswers = answersCacheRead();
     currentSectionIdx = readSectionIdx();
