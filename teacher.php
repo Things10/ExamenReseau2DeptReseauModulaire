@@ -314,14 +314,15 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
   .wrap { max-width:1180px; margin:22px auto; padding:0 16px; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px; }
   .tbl-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  table { width:100%; border-collapse:collapse; font-size:13.5px; min-width:960px; }
-  th, td { border-bottom:1px solid var(--line); padding:11px 10px; text-align:left; vertical-align:middle; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; min-width:1120px; }
+  th, td { border-bottom:1px solid var(--line); padding:10px 8px; text-align:left; vertical-align:middle; }
   th { background:#F0F5F2; font-size:12px; text-transform:uppercase; letter-spacing:.3px; color:var(--muted); white-space:nowrap; }
   td.num, th.num { text-align:center; }
+  th:last-child, td:last-child { text-align:center; }
   tbody tr:hover { background:#FAFCFB; }
   input[type=number], input[type=email], input[type=password], input[type=text] { font-size:14px; padding:7px 9px; border:1px solid #C9D8D2; border-radius:6px; height:36px; }
   input[type=number] { width:80px; text-align:center; }
-  input[type=email], input[type=text] { width:220px; }
+  input[type=email], input[type=text] { width:190px; }
   input[type=number]:focus, input[type=email]:focus, input[type=text]:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(29,158,117,.15); }
   .btn { background:var(--green); color:#fff; border:0; border-radius:7px; padding:8px 14px; font-size:13.5px; cursor:pointer; font-weight:bold; }
   .btn:hover { background:var(--green-dk); }
@@ -329,8 +330,8 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
   .btn-out { background:none; border:1px solid rgba(255,255,255,.7); color:#fff; border-radius:7px; padding:7px 14px; font-size:13px; cursor:pointer; text-decoration:none; }
   .btn-alt { background:#2E6B82; }
   .btn-alt:hover { background:#245366; }
-  .actions { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
-  .actions .btn { white-space:nowrap; padding:8px 12px; font-size:13px; }
+  .actions { display:flex; gap:6px; align-items:center; flex-wrap:nowrap; justify-content:center; }
+  .actions .btn { white-space:nowrap; padding:6px 10px; font-size:12px; }
   .actions .meta { margin:0; }
   .tot { font-weight:bold; font-size:15px; }
   .ok { color:#0B6E4F; font-weight:bold; }
