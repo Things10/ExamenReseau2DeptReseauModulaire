@@ -161,7 +161,7 @@ $stmt->execute([':sid' => $student['id']]);
 $existing = $stmt->fetch();
 
 if ($existing) {
-    /* Tan apre voi - si sesyon an depase, rekreye li yo */
+    /* Tan apre voi - si sesyon an poko depase, kontinye li (menm tan ki rete a) */
     if (new DateTime($existing['expires_at']) > $now) {
         json_out([
             'ok'        => true,
@@ -172,7 +172,14 @@ if ($existing) {
             'student'     => $studentPayload,
         ]);
     }
-    $pdo->prepare('DELETE FROM exam_sessions WHERE id = :id')->execute([':id' => $existing['id']]);
+    /* Sesyon an DEPASE : egzakteman 120 min. Li pa ka rekòmanse.
+       (Enseyan an ka efase sesyon an nan espas li pou debloke elèv la.) */
+    json_out([
+        'ok'      => false,
+        'expired' => true,
+        'title'   => 'Temps écoulé',
+        'message' => 'Votre temps d\'examen (120 minutes) est écoulé. L\'examen ne peut plus être repris. Contactez votre enseignant si vous pensez qu\'il s\'agit d\'une erreur.',
+    ]);
 }
 
 /* Kreye nouvo sesyon */
