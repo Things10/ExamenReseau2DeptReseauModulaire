@@ -31,7 +31,7 @@ function compute_auto(array $answers): float {
     $score = 0.0;
     for ($i = 0; $i < QCM_COUNT; $i++) {
         $raw = $answers[(string)$i] ?? '';
-        $ua  = is_string($raw) ? trim($raw) : '';
+        $ua  = is_scalar($raw) ? trim((string)$raw) : '';
         $good = mb_strtolower(trim($GLOBALS['QCM_ANSWERS'][$i] ?? ''));
         if ($ua !== '' && mb_strtolower($ua) === $good) { $score += QCM_PTS; }
     }
@@ -50,9 +50,16 @@ function answer_map(PDO $pdo, int $sessionId): array {
     $st = $pdo->prepare('SELECT question_key, answer FROM answers WHERE session_id = :sid');
     $st->execute([':sid' => $sessionId]);
     foreach ($st->fetchAll() as $row) {
-        $val = $row['answer'];
-        $dec = json_decode($val, true);
-        $map[$row['question_key']] = ($dec !== null) ? $dec : $val;
+        $val = (string)$row['answer'];
+        $t = ltrim($val);
+        /* Dekode sèlman JSON tablo/objè (seksyon B/C/D). Yon tekst
+           nimerik tankou "62" pa dwe tounen nonb, sinon quiz la rate. */
+        if ($t !== '' && ($t[0] === '[' || $t[0] === '{')) {
+            $dec = json_decode($val, true);
+            $map[$row['question_key']] = ($dec !== null) ? $dec : $val;
+        } else {
+            $map[$row['question_key']] = $val;
+        }
     }
     return $map;
 }
@@ -459,6 +466,7 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
     const REPORT_DATA = <?= json_encode(array_map(function ($r) {
         $has = $r['manual'] !== null;
         return [
+            'sk' => $r['session_key'],
             'name' => $r['name'], 'code' => $r['code'], 'email' => (string)($r['email'] ?? ''),
             'auto' => round($r['auto'], 2), 'manual' => $has ? round($r['manual'], 2) : null,
             'total' => $has ? round($r['auto'] + $r['manual'], 2) : null,
@@ -596,6 +604,8 @@ $rows = $auth ? fetch_all_rows($pdo) : [];
 
       btn.textContent = '✓ Envoyé';
       btn.style.background = '#0B6E4F';
+      const rdRow = REPORT_DATA.find(x => x.sk === sk);
+      if (rdRow) { rdRow.manual = manual; rdRow.total = Math.round((auto + manual) * 100) / 100; rdRow.email = email; }
       upd(sk, auto);
     }
 
