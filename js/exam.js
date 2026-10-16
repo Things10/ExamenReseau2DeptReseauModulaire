@@ -924,7 +924,7 @@ async function startExam() {
     }
 
     sessionKey = res.session_key;
-    studentName = res.name || enteredName;
+    studentName = (res.student && res.student.name) || res.name || enteredName;
     setRemaining(res.remaining_seconds);
     isTestAccount = res.is_test === true;
     resumeStore((res.student && res.student.code) || enteredCode, studentName, (res.student && res.student.email) || enteredEmail, sessionKey, remainingSeconds, isTestAccount); // restore sou refresh
