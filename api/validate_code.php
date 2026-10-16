@@ -50,6 +50,7 @@ $in = body_json();
 $code = trim((string)($in['code'] ?? ''));
 $name = trim((string)($in['name'] ?? ''));
 $email = trim((string)($in['email'] ?? ''));
+$token = trim((string)($in['access_token'] ?? ''));
 if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) { $email = ''; }
 
 if ($code === '') {
@@ -66,6 +67,17 @@ try {
     );
     if ((int)$chk->fetch()['c'] === 0) {
         $pdo->exec('ALTER TABLE students ADD COLUMN email VARCHAR(120) NULL');
+    }
+} catch (Throwable $e) { /* rete pare */ }
+
+/* Asire kolòn `access_token` egziste nan tablo students (verrou aparèy) */
+try {
+    $chk = $pdo->query(
+        'SELECT COUNT(*) AS c FROM information_schema.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = "exam_sessions" AND COLUMN_NAME = "access_token"'
+    );
+    if ((int)$chk->fetch()['c'] === 0) {
+        $pdo->exec('ALTER TABLE exam_sessions ADD COLUMN access_token VARCHAR(64) NULL');
     }
 } catch (Throwable $e) { /* rete pare */ }
 
@@ -154,7 +166,7 @@ if ($done->fetch()) {
 $sessionKey = hash('sha256', $code . '|' . $student['id'] . '|examen-reseau2');
 
 $stmt = $pdo->prepare(
-    'SELECT id, session_key, started_at, expires_at, submitted
+    'SELECT id, session_key, started_at, expires_at, submitted, access_token
        FROM exam_sessions
       WHERE student_id = :sid AND submitted = 0
       ORDER BY id DESC LIMIT 1'
@@ -163,12 +175,28 @@ $stmt->execute([':sid' => $student['id']]);
 $existing = $stmt->fetch();
 
 if ($existing) {
-    /* Tan apre voi - si sesyon an poko depase, kontinye li (menm tan ki rete a) */
+    /* Sesyon aktif deja. Se pou menm aparèy la (menm jeton) ki ka kontinye l. */
     if (new DateTime($existing['expires_at']) > $now) {
+        $sessTok = (string)($existing['access_token'] ?? '');
+        if ($sessTok !== '' && $token !== $sessTok) {
+            json_out([
+                'ok'       => false,
+                'conflict' => true,
+                'title'    => 'Déjà connecté',
+                'message'  => 'Ce code est déjà utilisé pour un examen en cours sur un autre appareil. Un seul appareil à la fois est autorisé. Contactez votre enseignant si vous pensez que c\'est une erreur.',
+            ]);
+        }
+        /* Menm aparèy, oswa ansyen sesyon ki pa gen jeton (anvan verrou) → kontinye */
+        if ($sessTok === '') {
+            $sessTok = bin2hex(random_bytes(16));
+            $pdo->prepare('UPDATE exam_sessions SET access_token = :t WHERE id = :id')
+                ->execute([':t' => $sessTok, ':id' => (int)$existing['id']]);
+        }
         json_out([
             'ok'        => true,
             'resuming'  => true,
             'session_key' => $existing['session_key'],
+            'access_token' => $sessTok,
             'expires_at'  => $existing['expires_at'],
             'remaining_seconds' => (new DateTime($existing['expires_at']))->getTimestamp() - $now->getTimestamp(),
             'student'     => $studentPayload,
@@ -185,21 +213,24 @@ if ($existing) {
 }
 
 /* Kreye nouvo sesyon */
+$accessToken = bin2hex(random_bytes(16));
 $stmt = $pdo->prepare(
-    'INSERT INTO exam_sessions (student_id, session_key, started_at, expires_at)
-     VALUES (:sid, :sk, :start, :exp)'
+    'INSERT INTO exam_sessions (student_id, session_key, started_at, expires_at, access_token)
+     VALUES (:sid, :sk, :start, :exp, :tok)'
 );
 $stmt->execute([
     ':sid'   => $student['id'],
     ':sk'    => $sessionKey,
     ':start' => $now->format('Y-m-d H:i:s'),
     ':exp'   => $expires->format('Y-m-d H:i:s'),
+    ':tok'   => $accessToken,
 ]);
 
 json_out([
     'ok'        => true,
     'resuming'  => false,
     'session_key' => $sessionKey,
+    'access_token' => $accessToken,
     'expires_at'  => $expires->format('Y-m-d H:i:s'),
     'remaining_seconds' => EXAM_DURATION_MINUTES * 60,
     'student'     => $studentPayload,

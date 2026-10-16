@@ -292,6 +292,19 @@ document.addEventListener('visibilitychange', () => {
      men apre re-entrée code+nom, repons yo restore depi server.
    ============================================================ */
 const SESSION_STORE_KEY = 'exam2_session_v1';
+const DEVICE_STORE_KEY = 'exam2_device_v1';
+let accessToken = '';
+
+/* Verrou aparèy : yon jeton sivevi nan localStorage. Yon menm navigatè ka
+   kontinye sesyon an (menm apre fèmen tab), men yon lòt aparèy pa gen l. */
+function deviceStore(code, sk, tok) {
+  try {
+    localStorage.setItem(DEVICE_STORE_KEY, JSON.stringify({ code: code || '', sk: sk || '', token: tok || '' }));
+  } catch (e) {}
+}
+function deviceRead() {
+  try { return JSON.parse(localStorage.getItem(DEVICE_STORE_KEY) || 'null'); } catch (e) { return null; }
+}
 
 function resumeStore(code, name, email, sk, rem, test) {
   try {
@@ -299,9 +312,11 @@ function resumeStore(code, name, email, sk, rem, test) {
       code, name, email: email || '',
       sk: sk || '',
       rem: (typeof rem === 'number' ? rem : null),
-      test: test === true
+      test: test === true,
+      token: accessToken || ''
     }));
   } catch (e) {}
+  deviceStore(code, sk, accessToken);
 }
 function resumeRead() {
   try { return JSON.parse(sessionStorage.getItem(SESSION_STORE_KEY) || 'null'); } catch (e) { return null; }
@@ -312,11 +327,15 @@ function touchResumeStore() {
     if (!cur) return;
     if (sessionKey) cur.sk = sessionKey;
     if (typeof remainingSeconds === 'number') cur.rem = remainingSeconds;
+    if (accessToken) cur.token = accessToken;
     sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify(cur));
+    if (cur.code) deviceStore(cur.code, cur.sk, accessToken);
   } catch (e) {}
 }
 function resumeClear() {
   try { sessionStorage.removeItem(SESSION_STORE_KEY); } catch (e) {}
+  try { localStorage.removeItem(DEVICE_STORE_KEY); } catch (e) {}
+  accessToken = '';
   clearSectionIdx();
   answersCacheClear();
 }
@@ -423,9 +442,11 @@ function showExamInstant() {
 /* Senkronizasyon an aryè-plan : konfime sesyon an ak sèvè a san bloke ekran */
 async function syncSessionInBackground(saved) {
   try {
-    const res = await apiPost('validate_code.php', { code: saved.code, name: saved.name, email: saved.email || '' });
+    const tok = (saved && saved.token) || '';
+    const res = await apiPost('validate_code.php', { code: saved.code, name: saved.name, email: saved.email || '', access_token: tok });
     if (!res || !res.ok || !res.session_key) return;
     sessionKey = res.session_key;
+    if (res.access_token) accessToken = res.access_token;
     if (res.student && res.student.name && !studentName) {
       studentName = res.student.name;
       const lbl = document.getElementById('student-label');
@@ -444,12 +465,15 @@ async function syncSessionInBackground(saved) {
 
 async function resumeSession(code, name, email) {
   try {
-    const res = await apiPost('validate_code.php', { code, name, email });
+    const dev = deviceRead();
+    const tok = (dev && dev.code === code && dev.token) || '';
+    const res = await apiPost('validate_code.php', { code, name, email, access_token: tok });
     if (!res || !res.ok || !res.session_key) {
       resumeClear();
       return false;
     }
     sessionKey = res.session_key;
+    accessToken = res.access_token || '';
     studentName = (res.student && res.student.name) || name;
     setRemaining(res.remaining_seconds || EXAM_DURATION_SECONDS);
     isTestAccount = res.is_test === true;
@@ -909,10 +933,14 @@ async function startExam() {
   setLoginStatus('wait', 'Vérification du code...');
 
   try {
+    /* Verrou aparèy : si devi a deja gen yon sesyon pou menm kòd la, voye l jeton l. */
+    const dev = deviceRead();
+    const tok = (dev && dev.code === enteredCode && dev.token) || '';
     const res = await apiPost('validate_code.php', {
       code: enteredCode,
       name: enteredName,
-      email: enteredEmail
+      email: enteredEmail,
+      access_token: tok
     });
 
     if (!res.ok) {
@@ -924,6 +952,7 @@ async function startExam() {
     }
 
     sessionKey = res.session_key;
+    accessToken = res.access_token || '';
     studentName = (res.student && res.student.name) || res.name || enteredName;
     setRemaining(res.remaining_seconds);
     isTestAccount = res.is_test === true;
