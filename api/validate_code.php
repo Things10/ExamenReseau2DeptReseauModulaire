@@ -1,8 +1,9 @@
 <?php
 /* ============================================================
-   API — VALIDE KOD + NON ETIDYAN
-   POST { code, name }
-   - chèche etidyan an nan baz la (code YONIK + non ofisyèl)
+   API — VALIDE KOD ETIDYAN
+   POST { code, name (opsyonèl), email (opsyonèl) }
+   - chèche etidyan an nan baz la (code YONIK)
+   - si yon non bay, li dwe koresponn ak non ofisyèl la
    - kreye oubyen rekòmanse sesyon an
    ============================================================ */
 declare(strict_types=1);
@@ -51,8 +52,8 @@ $name = trim((string)($in['name'] ?? ''));
 $email = trim((string)($in['email'] ?? ''));
 if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) { $email = ''; }
 
-if ($code === '' || $name === '') {
-    json_out(['ok' => false, 'message' => 'Le code et le nom sont obligatoires.'], 422);
+if ($code === '') {
+    json_out(['ok' => false, 'message' => 'Le code est obligatoire.'], 422);
 }
 
 $pdo = db();
@@ -76,9 +77,10 @@ if (!$student) {
     json_out(['ok' => false, 'message' => 'Ce code n\'est pas reconnu. Vérifiez auprès de votre enseignant.']);
 }
 
-/* Non an dwe koresponn ak non ofisyèl la (nom oswa prénom, san aksan, espas miltip OK) */
-if (!name_matches((string)$student['name'], $name)) {
-    json_out(['ok' => false, 'message' => 'Ce code n\'est pas associé à ce nom. Entrez votre nom ou prénom tel qu\'enregistré (les accents et espaces multiples sont acceptés).']);
+/* Non an se OPSYONÈL : si li bay, li dwe koresponn ak non ofisyèl la
+   (nom oswa prénom, san aksan, espas miltip OK) */
+if ($name !== '' && !name_matches((string)$student['name'], $name)) {
+    json_out(['ok' => false, 'message' => 'Ce code n\'est pas associé à ce nom. Entrez votre nom ou prénom tel qu\'enregistré (les accents et espaces multiples sont acceptés), ou laissez le champ vide.']);
 }
 
 /* Sove email etidyan an si li bay yon sèl valab */

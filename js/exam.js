@@ -426,6 +426,11 @@ async function syncSessionInBackground(saved) {
     const res = await apiPost('validate_code.php', { code: saved.code, name: saved.name, email: saved.email || '' });
     if (!res || !res.ok || !res.session_key) return;
     sessionKey = res.session_key;
+    if (res.student && res.student.name && !studentName) {
+      studentName = res.student.name;
+      const lbl = document.getElementById('student-label');
+      if (lbl) lbl.textContent = studentName;
+    }
     if (res.remaining_seconds) setRemaining(res.remaining_seconds);
     if (res.is_test !== undefined) { isTestAccount = res.is_test === true; applyLogoutVisibility(); }
     resumeStore(saved.code, studentName, saved.email || '', sessionKey, remainingSeconds, isTestAccount);
@@ -889,8 +894,8 @@ async function startExam() {
   const enteredName = nameInput.value.trim();
   const enteredEmail = emailInput ? emailInput.value.trim() : '';
 
-  if (!enteredCode || !enteredName) {
-    showModal('Champs requis', 'Veuillez entrer votre code d\'accès et votre nom complet.');
+  if (!enteredCode) {
+    showModal('Code requis', 'Veuillez entrer votre code d\'accès.');
     return;
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(enteredEmail)) {
@@ -1308,11 +1313,10 @@ function updateStartBtn() {
   const btn = document.getElementById('start-btn');
   if (!btn) return;
   const code = (document.getElementById('access-code').value || '').trim();
-  const name = (document.getElementById('student-name').value || '').trim();
   const emailEl = document.getElementById('student-email');
   const email = emailEl ? (emailEl.value || '').trim() : '';
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  btn.disabled = !(code && name && emailOk);
+  btn.disabled = !(code && emailOk);
 }
 
 (async function init() {
@@ -1327,7 +1331,7 @@ function updateStartBtn() {
   /* Sesyon ki te kòmanse deja (refresh / paj fèmen) → restore li dirèk,
      san paj kòmansman an pa flote */
   const saved = resumeRead();
-  if (saved && saved.code && saved.name && saved.sk) {
+  if (saved && saved.code && saved.sk) {
     /* CHEMIN RAPID : nou gen session_key + repons an kachèt →
        afiche egzamen an TOUSWIT, san rete rezo, san "Veuillez patienter".
        Senkronizasyon ak sèvè a fèt an aryè-plan. */
@@ -1339,7 +1343,7 @@ function updateStartBtn() {
     currentSectionIdx = readSectionIdx();
     showExamInstant();
     syncSessionInBackground(saved);
-  } else if (saved && saved.code && saved.name) {
+  } else if (saved && saved.code) {
     /* Premye fwa (pa gen session_key an kachèt) : ansyen chemin ak loader */
     document.getElementById('screen-intro').style.display = 'none';
     document.getElementById('screen-exam').classList.add('show');
