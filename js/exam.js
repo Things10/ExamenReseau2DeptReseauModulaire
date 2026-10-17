@@ -681,13 +681,15 @@ function buildQuestionHTML(idx, q) {
       html += `<p class="exo-note-table">Compl\u00e9tez le tableau des sous-r\u00e9seaux :</p>`;
       html += `<table class="exo-table" id="exo-table-${idx}">`;
       html += `<thead><tr>`;
-      q.tableCols.slice(1).forEach((col) => {
+      q.tableCols.forEach((col) => {
         html += `<th>${col}</th>`;
       });
       html += `</tr></thead>`;
       html += `<tbody>`;
       q.vlsmRows.forEach((lbl, r) => {
         html += `<tr>`;
+        const nameVal = (data.rows && data.rows[r] && data.rows[r][0]) || '';
+        html += `<td class="exo-cell"><input class="exo-table-input exo-name-input" data-idx="${idx}" data-r="${r}" data-c="0" value="${nameVal.replace(/"/g, '&quot;')}" inputmode="text" autocomplete="off"></td>`;
         for (let c = 1; c < q.tableCols.length; c++) {
           const val = (data.rows && data.rows[r] && data.rows[r][c]) || '';
           html += `<td class="exo-cell"><input class="exo-table-input" data-idx="${idx}" data-r="${r}" data-c="${c}" value="${val.replace(/"/g, '&quot;')}" inputmode="decimal" pattern="[0-9.\\-]*" autocomplete="off"></td>`;
@@ -724,7 +726,7 @@ function renderSection(sectionIdx) {
     inp.addEventListener('input', () => { applyIPCap(inp); ansExoQ(+inp.dataset.idx, +inp.dataset.qi, inp.value); });
     inp.dataset.bound = '1';
   });
-  container.querySelectorAll('.exo-table-input:not([data-bound])').forEach(inp => {
+  container.querySelectorAll('.exo-table-input:not(.exo-name-input):not([data-bound])').forEach(inp => {
     inp.addEventListener('input', () => {
       let v = inp.value.replace(/[^0-9.\-]/g, '');
       v = capIPOctets(v);
@@ -734,6 +736,12 @@ function renderSection(sectionIdx) {
         inp.value = v;
         try { inp.setSelectionRange(pos, pos); } catch (e) {}
       }
+      ansExoCell(+inp.dataset.idx, +inp.dataset.r, +inp.dataset.c, inp.value);
+    });
+    inp.dataset.bound = '1';
+  });
+  container.querySelectorAll('.exo-name-input:not([data-bound])').forEach(inp => {
+    inp.addEventListener('input', () => {
       ansExoCell(+inp.dataset.idx, +inp.dataset.r, +inp.dataset.c, inp.value);
     });
     inp.dataset.bound = '1';
@@ -1056,10 +1064,10 @@ function collectSubjective() {
         out += ` ${r+1}. ${item.table4.cols.map((_, c) => row[c] || '\u2014').join(' | ')}\n`;
       }
     } else if (item.vlsmRows && item.tableCols) {
-      out += `\nTableau VLSM (${item.tableCols.slice(1).join(' | ')})\n`;
+      out += `\nTableau VLSM (${item.tableCols.join(' | ')})\n`;
       item.vlsmRows.forEach((lbl, r) => {
         const row = rows[r] || [];
-        out += ` ${item.tableCols.slice(1).map((_, c) => row[c+1] || '\u2014').join(' | ')}\n`;
+        out += ` ${item.tableCols.map((_, c) => row[c] || '\u2014').join(' | ')}\n`;
       });
     }
     answers.push(out);
@@ -1303,11 +1311,11 @@ function buildEmailHtml(objectiveScore, detail, subjectiveAnswers, autoTotal, su
       h += `<p style="margin:8px 0 6px;color:#4A4A4A">Complétez le tableau des sous-réseaux :</p>`;
       h += `<div style="overflow-x:auto;margin:6px 0">`;
       h += `<table style="border-collapse:collapse;margin:0 auto">`;
-      h += `<tr>${item.tableCols.slice(1).map(c => `<th style="${thCss}">${escHtml(c)}</th>`).join('')}</tr>`;
+      h += `<tr>${item.tableCols.map(c => `<th style="${thCss}">${escHtml(c)}</th>`).join('')}</tr>`;
       item.vlsmRows.forEach((lbl, r) => {
         const row = rows[r] || [];
         h += `<tr>`;
-        h += item.tableCols.slice(1).map((_, c) => `<td style="${tdCss}min-width:125px;font-family:Consolas,monospace">${row[c + 1] ? escHtml(row[c + 1]) : '—'}</td>`).join('');
+        h += item.tableCols.map((_, c) => `<td style="${tdCss}min-width:125px;font-family:Consolas,monospace">${row[c] ? escHtml(row[c]) : '—'}</td>`).join('');
         h += `</tr>`;
       });
       h += `</table></div>`;
